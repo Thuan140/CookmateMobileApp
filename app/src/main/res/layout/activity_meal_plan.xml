@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f2e2d9"
+    tools:context=".MainActivity">
+
+    <!-- KHU VỰC HEADER (CookMate Logo và Notification) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/chefHatIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_logo_cookmate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="CookMate"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="@+id/chefHatIcon"
+            app:layout_constraintStart_toEndOf="@+id/chefHatIcon"
+            app:layout_constraintTop_toTopOf="@+id/chefHatIcon" />
+
+        <ImageView
+            android:id="@+id/notificationIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_bell"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/chefHatIcon"
+            app:layout_constraintBottom_toBottomOf="@+id/chefHatIcon"
+            app:tint="@android:color/black" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Tiêu đề Meal Plan -->
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:text="Meal Plan"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+
+    <!-- 1. KHU VỰC LỊCH (Calendar Layout) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/calendarCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/textView8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- THANH ĐIỀU HƯỚNG LỊCH (Tháng, nút chuyển/reset) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="12dp">
+
+                <ImageView
+                    android:id="@+id/btnPreviousMonth"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/outline_arrow_back_ios_24"
+                    app:tint="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/currentMonthYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    tools:text="Tháng 10, 2025"
+                    android:textColor="@android:color/black"/>
+
+                <ImageView
+                    android:id="@+id/btnResetMonth"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_reset"
+                    app:tint="@android:color/black" />
+
+                <ImageView
+                    android:id="@+id/btnNextMonth"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/outline_arrow_forward_ios_24"
+                    app:tint="@android:color/black" />
+            </LinearLayout>
+
+            <!-- BỐ CỤC LƯỚI NGÀY (7 cột x 5 hàng) -->
+            <GridLayout
+                android:id="@+id/calendarGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="7">
+
+                <!-- HÀNG 1: Tên các ngày trong tuần (Header) -->
+                <!-- CN --> <TextView style="@style/CalendarDayHeader" android:text="CN" />
+                <!-- T2 --> <TextView style="@style/CalendarDayHeader" android:text="T2" />
+                <!-- T3 --> <TextView style="@style/CalendarDayHeader" android:text="T3" />
+                <!-- T4 --> <TextView style="@style/CalendarDayHeader" android:text="T4" />
+                <!-- T5 --> <TextView style="@style/CalendarDayHeader" android:text="T5" />
+                <!-- T6 --> <TextView style="@style/CalendarDayHeader" android:text="T6" />
+                <!-- T7 --> <TextView style="@style/CalendarDayHeader" android:text="T7" />
+
+                <!-- Placeholder cho 5 hàng Ngày (Tối đa 35 ô) -->
+                <!-- VÌ LÝ DO FE, CHÚNG TA SẼ DÙNG DỮ LIỆU MẪU ĐỂ MÔ PHỎNG LƯỚI -->
+                <include layout="@layout/calendar_day_placeholder" />
+            </GridLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 2. THÔNG TIN NGÀY HIỆN TẠI (Date Info) -->
+    <LinearLayout
+        android:id="@+id/currentDateInfoLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/calendarCard">
+
+        <!-- ICON LỊCH MỚI (Kích thước nhỏ hơn) -->
+        <ImageView
+            android:id="@+id/calendarIconSmall"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_calendar"
+            app:tint="@android:color/black"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/currentDateInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            tools:text="Ngày 11/10/2025 (Thực đơn tập gym)" />
+
+    </LinearLayout>
+
+    <!-- 3. DANH SÁCH MÓN ĂN (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/mealPlanRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/currentDateInfoLayout"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        tools:listitem="@layout/item_meal_plan_entry"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        />
+
+    <!-- BOTTOM NAVIGATION BAR (Giữ nguyên từ file gốc) -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:background="?android:attr/windowBackground"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

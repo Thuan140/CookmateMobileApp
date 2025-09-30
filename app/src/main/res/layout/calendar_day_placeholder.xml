@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- TUẦN 1: Bắt đầu từ Thứ 3 -->
+    <TextView style="@style/CalendarDayCellEmpty" />
+    <TextView style="@style/CalendarDayCellEmpty" />
+    <TextView style="@style/CalendarDayCell" tools:text="1" />
+    <TextView style="@style/CalendarDayCell" tools:text="2" />
+    <TextView style="@style/CalendarDayCell" tools:text="3" />
+    <TextView style="@style/CalendarDayCell" tools:text="4" />
+    <TextView style="@style/CalendarDayCell" tools:text="5" />
+
+    <!-- TUẦN 2 -->
+    <TextView style="@style/CalendarDayCell" tools:text="6" />
+    <TextView style="@style/CalendarDayCell" tools:text="7" />
+    <TextView style="@style/CalendarDayCell" tools:text="8" />
+    <TextView style="@style/CalendarDayCell" tools:text="9" />
+    <TextView style="@style/CalendarDayCell" tools:text="10" />
+    <TextView style="@style/CalendarDayCell" tools:text="11" />
+    <TextView style="@style/CalendarDayCell" tools:text="12" />
+
+    <!-- TUẦN 3 -->
+    <TextView style="@style/CalendarDayCell" tools:text="13" />
+    <TextView style="@style/CalendarDayCell" tools:text="14" />
+    <TextView style="@style/CalendarDayCell" tools:text="15" />
+    <TextView style="@style/CalendarDayCell" tools:text="16" />
+    <TextView style="@style/CalendarDayCell" tools:text="17" />
+    <TextView style="@style/CalendarDayCell" tools:text="18" />
+    <TextView style="@style/CalendarDayCell" tools:text="19" />
+
+    <!-- TUẦN 4 -->
+    <TextView style="@style/CalendarDayCell" tools:text="20" />
+    <TextView style="@style/CalendarDayCell" tools:text="21" />
+    <TextView style="@style/CalendarDayCell" tools:text="22" />
+    <TextView style="@style/CalendarDayCell" tools:text="23" />
+    <TextView style="@style/CalendarDayCell" tools:text="24" />
+    <TextView style="@style/CalendarDayCell" tools:text="25" />
+    <TextView style="@style/CalendarDayCell" tools:text="26" />
+
+    <!-- TUẦN 5 -->
+    <TextView style="@style/CalendarDayCell" tools:text="27" />
+    <TextView style="@style/CalendarDayCell" tools:text="28" />
+    <TextView style="@style/CalendarDayCell" tools:text="29" />
+    <TextView style="@style/CalendarDayCell" tools:text="30" />
+    <TextView style="@style/CalendarDayCellEmpty" />
+    <TextView style="@style/CalendarDayCellEmpty" />
+    <TextView style="@style/CalendarDayCellEmpty" />
+</merge>
