@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="CircleImageView">
+    <!-- LỖI ĐÃ ĐƯỢC KHẮC PHỤC: Sử dụng parent để kế thừa thuộc tính Material Components -->
+    <style name="CircleImageView" parent="Widget.MaterialComponents.ShapeableImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-    <style name="RoundedImage" parent="">
+
+    <style name="RoundedImage" parent="Widget.MaterialComponents.ShapeableImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
     </style>
@@ -35,6 +37,6 @@
     <!-- Styles cho các ô ngày trống (để giữ bố cục) -->
     <style name="CalendarDayCellEmpty" parent="CalendarDayCell">
         <item name="android:text"></item>
-    </item>
+    </style>
 
 </resources>
