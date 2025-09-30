@@ -8,6 +8,7 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
     </style>
+
     <!-- Styles cho Header ngày trong tuần (CN, T2,...) -->
     <style name="CalendarDayHeader" parent="Widget.AppCompat.TextView">
         <item name="android:layout_width">0dp</item>

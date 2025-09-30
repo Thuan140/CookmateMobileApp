@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Guideline trái -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="16dp" />
+
+        <!-- Guideline phải -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="16dp" />
+
+        <!-- Back Icon -->
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/outline_arrow_back_ios_24"
+            android:padding="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="16dp"
+            android:contentDescription="Back" />
+
+        <!-- Favorite Icon -->
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_heart"
+            android:padding="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+            android:layout_marginTop="16dp"
+            android:contentDescription="Favorite" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Spaghetti"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivBack"
+            app:layout_constraintEnd_toStartOf="@id/ivFavorite"
+            android:layout_marginTop="16dp" />
+
+        <!-- Food Image -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardFoodImage"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+            android:layout_marginTop="16dp">
+
+            <ImageView
+                android:id="@+id/ivFood"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_launcher_background" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Recipe Type -->
+        <TextView
+            android:id="@+id/tvRecipe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recipe"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintTop_toBottomOf="@id/cardFoodImage"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="12dp" />
+
+        <TextView
+            android:id="@+id/tvMainCourse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Main Course"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvRecipe"
+            app:layout_constraintStart_toEndOf="@id/tvRecipe"
+            android:layout_marginStart="6dp" />
+
+        <!-- Ingredients -->
+        <TextView
+            android:id="@+id/tvIngredients"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ingredients"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvRecipe"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:id="@+id/tvIngredientList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="• 8 oz spaghetti\n• 1 cup marinara sauce\n• 2 cloves garlic\n• 2 tbsp olive oil"
+            android:textSize="15sp"
+            android:lineSpacingExtra="6dp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvIngredients"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+            android:layout_marginTop="8dp" />
+
+        <!-- Instructions -->
+        <TextView
+            android:id="@+id/tvInstructions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Instructions"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvIngredientList"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="20dp" />
+
+        <!-- Instruction content -->
+        <TextView
+            android:id="@+id/tvInstructionContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="1. Boil water with salt.\n2. Cook spaghetti until al dente.\n3. Heat olive oil and garlic.\n4. Mix with marinara sauce and serve."
+            android:textSize="15sp"
+            android:lineSpacingExtra="6dp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvInstructions"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+            android:layout_marginTop="8dp" />
+
+        <!-- Nutrition -->
+        <TextView
+            android:id="@+id/tvNutrition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nutrition"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvInstructionContent"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="20dp" />
+
+        <!-- Placeholder Pie Chart -->
+        <ImageView
+            android:id="@+id/ivNutritionChart"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_launcher_background"
+            android:scaleType="fitCenter"
+            app:layout_constraintTop_toBottomOf="@id/tvNutrition"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            android:layout_marginTop="12dp"
+            android:contentDescription="Nutrition Chart" />
+
+        <!-- Nutrition details -->
+        <TextView
+            android:id="@+id/tvNutritionDetail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="46% Fat\n30% Protein\n24% Carbs"
+            android:textSize="15sp"
+            android:textColor="@android:color/black"
+            android:lineSpacingExtra="4dp"
+            app:layout_constraintTop_toBottomOf="@id/ivNutritionChart"
+            app:layout_constraintStart_toStartOf="@id/guidelineStart"
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+            android:layout_marginTop="6dp" />
+
+        <!-- Cook Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCook"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="32dp"
+            android:backgroundTint="#1565C0"
+            android:text="Cook"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:cornerRadius="20dp"
+            app:iconGravity="textStart"
+            app:iconPadding="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvNutritionDetail" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
