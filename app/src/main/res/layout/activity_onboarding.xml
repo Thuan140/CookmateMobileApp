@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Header -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back / Skip Button -->
+        <ImageButton
+            android:id="@+id/btn_back_or_skip"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/outline_arrow_back_ios_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- Progress Bar Background -->
+        <View
+            android:id="@+id/progress_bar_background"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="0dp"
+            android:background="E0E0E0"
+            app:layout_constraintStart_toEndOf="@id/btn_back_or_skip"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_back_or_skip"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back_or_skip"
+            app:layout_constraintWidth_percent="0.5" />
+
+        <!-- Progress Bar Foreground (để xử lý động trong code) -->
+        <View
+            android:id="@+id/progress_bar_foreground"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:background="FF6B6B"
+            app:layout_constraintStart_toStartOf="@id/progress_bar_background"
+            app:layout_constraintTop_toTopOf="@id/progress_bar_background"
+            app:layout_constraintBottom_toBottomOf="@id/progress_bar_background"
+            app:layout_constraintWidth_percent="0.33" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ViewPager2 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_onboarding"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/indicator_layout" />
+
+    <!-- Indicator Layout -->
+    <LinearLayout
+        android:id="@+id/indicator_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_next"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <View
+            android:id="@+id/indicator_dot_1"
+            style="@style/IndicatorDotActive" />
+
+        <View
+            android:id="@+id/indicator_dot_2"
+            style="@style/IndicatorDotInactive"
+            android:layout_marginStart="8dp" />
+
+        <View
+            android:id="@+id/indicator_dot_3"
+            style="@style/IndicatorDotInactive"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- Button Next -->
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@android:color/black"
+        android:minHeight="56dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

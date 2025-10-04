@@ -11,6 +11,23 @@
         <item name="cornerSize">20dp</item>
     </style>
 
+    <style name="Toolbar.Title">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="IndicatorDotActive">
+        <item name="android:layout_width">8dp</item>
+        <item name="android:layout_height">8dp</item>
+        <item name="android:background">@drawable/indicator_dot_active</item>
+    </style>
+
+    <style name="IndicatorDotInactive">
+        <item name="android:layout_width">8dp</item>
+        <item name="android:layout_height">8dp</item>
+        <item name="android:background">@drawable/indicator_dot_inactive</item>
+    </style>
+
     <!-- Styles cho Header ngày trong tuần (CN, T2,...) -->
     <style name="CalendarDayHeader" parent="Widget.AppCompat.TextView">
         <item name="android:layout_width">0dp</item>
