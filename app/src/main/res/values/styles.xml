@@ -11,7 +11,7 @@
         <item name="cornerSize">20dp</item>
     </style>
 
-    <style name="Toolbar.Title">
+    <style name="Toolbar">
         <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:textStyle">bold</item>
