@@ -56,4 +56,10 @@
         <item name="android:text"></item>
     </style>
 
+    <style name="CustomTabStyle">
+        <item name="tabBackground">@drawable/tab_selector</item>
+        <item name="tabIndicator">@null</item>
+    </style>
+
+
 </resources>

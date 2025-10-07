@@ -20,7 +20,7 @@
         android:title="Meal Plan" />
 
     <item
-        android:id="@+id/navigation_shopping"
+        android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_profile"
         android:title="Profile" />
 </menu>

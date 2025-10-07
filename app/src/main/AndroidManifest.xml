@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CookMate">
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,6 +20,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
+        <activity android:name=".HubActivity" />
+        <activity android:name=".FavoritesActivity" />
+        <activity android:name=".PantryActivity" />
+        <activity android:name=".MealPlanActivity" />
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".RecipeActivity" />
 
+    </application>
 </manifest>
