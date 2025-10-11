@@ -33,6 +33,16 @@ android {
 
 dependencies {
 
+    //import của thư viện Volley để gửi và nhận dữ liệu qua API (HTTP request)
+    implementation("com.android.volley:volley:1.2.1")
+    //import thư viện Google để lấy thông tin email trên máy
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    //import thư viện glide Tải ảnh từ URL, URI, file local rồi lưu cache
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    // import thư viện gson để chuyển đổi dữ liệu từ Java Object → JSON và ngược lại
+    implementation("com.google.code.gson:gson:2.11.0")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

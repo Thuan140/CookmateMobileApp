@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Cấp quyền truy cập internet  -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cấp quyền bộ nhớ cho Android 12 trở xuống -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Cấp quyền bộ nhớ cho Android 13 trở lên -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,21 +21,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CookMate">
+
         <activity
-            android:name=".HomeActivity"
+            android:name=".AuthActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".HubActivity" />
         <activity android:name=".FavoritesActivity" />
         <activity android:name=".PantryActivity" />
         <activity android:name=".MealPlanActivity" />
-        <activity android:name=".ProfileActivity" />
+        <activity android:name=".HomeActivity" />
         <activity android:name=".RecipeActivity" />
 
+        <activity
+            android:name=".LoginEmailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
     </application>
 </manifest>
