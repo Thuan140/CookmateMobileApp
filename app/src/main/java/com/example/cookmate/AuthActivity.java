@@ -33,7 +33,7 @@ public class AuthActivity extends AppCompatActivity {
 
         // 🔹 1. Cấu hình Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // lấy token xác thực từ Google
+                .requestIdToken(getString(R.string.default_web_client_id1)) // lấy token xác thực từ Google
                 .requestEmail()
                 .requestProfile()
                 .build();
@@ -134,11 +134,7 @@ public class AuthActivity extends AppCompatActivity {
                     }
                 });
             }
-
-//        } catch (ApiException e) {
-//            Log.w("GoogleSignIn", "signInResult:failed code=" + e.getStatusCode());
-//            Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_SHORT).show();
-//        }
+            
         } catch (ApiException e) {
             Log.e("GoogleSignIn", "signInResult:failed code=" + e.getStatusCode() + " message=" + e.getMessage());
             Toast.makeText(this, "Google Sign-In failed: code=" + e.getStatusCode(), Toast.LENGTH_LONG).show();

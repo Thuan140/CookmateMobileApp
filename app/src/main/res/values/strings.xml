@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">CookMate</string>
     <string name="default_web_client_id">250650458663-5h25en1n5ui39ollnqr3bkd3n4q4d14v.apps.googleusercontent.com</string>// mã xác thực từ google
+    <string name="default_web_client_id1">250650458663-uate697r2k3tac1t28m1v7rikfkgevqn.apps.googleusercontent.com</string>
 </resources>
