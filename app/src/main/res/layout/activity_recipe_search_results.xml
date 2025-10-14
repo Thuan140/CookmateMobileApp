@@ -168,24 +168,28 @@
         android:paddingTop="8dp"
 
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
-
         app:layout_constraintBottom_toTopOf="@id/paginationLayout"
+
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/filterSortLayout"
 
+        app:layout_constraintVertical_bias="0.0"
+        app:spanCount="2"
         tools:listitem="@layout/item_recipe_list" />
 
     <LinearLayout
         android:id="@+id/paginationLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="72dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
@@ -227,5 +231,16 @@
             app:tint="@android:color/darker_gray" />
 
     </LinearLayout>
-
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/windowBackground"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

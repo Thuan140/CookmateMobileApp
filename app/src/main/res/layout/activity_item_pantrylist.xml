@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="16dp"
@@ -18,57 +19,80 @@
             android:id="@+id/ingredientRadioButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            />
-        <TextView
-            android:id="@+id/ingredientName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="Apple"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintEnd_toStartOf="@+id/deleteIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ingredientImage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_placeholder"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/ingredientRadioButton"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/ingredientQuantity"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_width="170dp"
+            android:layout_height="22dp"
             android:layout_marginTop="4dp"
             android:text="5 pcs"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp"
-            app:layout_constraintEnd_toStartOf="@+id/deleteIcon"
-            app:layout_constraintStart_toEndOf="@+id/ingredientRadioButton"
+            app:layout_constraintEnd_toStartOf="@+id/editIcon"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/ingredientImage"
             app:layout_constraintTop_toBottomOf="@+id/ingredientName" />
 
         <TextView
+            android:id="@+id/ingredientName"
+            android:layout_width="170dp"
+            android:layout_height="27dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Apple"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toStartOf="@+id/editIcon"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/ingredientImage"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
             android:id="@+id/ingredientExpiryDate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_width="170dp"
+            android:layout_height="20dp"
             android:layout_marginTop="4dp"
             android:text="Expires: 11/05/2023"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp"
-            app:layout_constraintEnd_toStartOf="@+id/deleteIcon"
-            app:layout_constraintStart_toEndOf="@+id/ingredientRadioButton"
+            app:layout_constraintEnd_toStartOf="@+id/editIcon"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/ingredientImage"
             app:layout_constraintTop_toBottomOf="@+id/ingredientQuantity" />
+
+        <ImageView
+            android:id="@+id/editIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Edit item"
+            android:src="@drawable/ic_edit_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/deleteIcon"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/deleteIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_delete"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.488"
             app:tint="@android:color/darker_gray" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
