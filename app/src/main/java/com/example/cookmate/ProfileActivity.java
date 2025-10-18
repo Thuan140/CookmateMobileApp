@@ -1,18 +1,5 @@
 package com.example.cookmate;
 
-//import android.os.Bundle;
-//import androidx.annotation.Nullable;
-//import androidx.appcompat.app.AppCompatActivity;
-//
-//public class ProfileActivity extends AppCompatActivity {
-//    @Override
-//    protected void onCreate(@Nullable Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_profile);
-//
-//        // chọn đúng item tương ứng với activity này
-//        NavHelper.setupBottomNav(this, R.id.navigation_profile);
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -34,6 +21,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 
@@ -62,7 +52,6 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-
         // chọn đúng item tương ứng với activity này
         NavHelper.setupBottomNav(this, R.id.navigation_profile);
 
@@ -142,13 +131,50 @@ public class ProfileActivity extends AppCompatActivity {
         }));
 
         // Log out
+        // Đăng xuất thông tin người dùng
+//        logoutButton.setOnClickListener(v -> {
+//            session.clear();
+//            Intent intent = new Intent(ProfileActivity.this, AuthActivity.class);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//            startActivity(intent);
+//            finishAffinity();
+//        });
+
+        // Đăng xuất thông tin người dùng và thông tin được lưu bởi google
         logoutButton.setOnClickListener(v -> {
-            session.clear();
-            Intent intent = new Intent(ProfileActivity.this, AuthActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finishAffinity();
+            // Hiển thị dialog xác nhận
+            new AlertDialog.Builder(ProfileActivity.this)
+                    .setTitle("Log out")
+                    .setMessage("Are you sure you want to log out?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        // Xóa session lưu trong SharedPreferences
+                        session.clear();
+
+                        // Đăng xuất khỏi Google nếu có
+                        GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(
+                                ProfileActivity.this,
+                                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                        .requestIdToken(getString(R.string.default_web_client_id))
+                                        .requestEmail()
+                                        .build()
+                        );
+
+                        googleSignInClient.signOut()
+                                .addOnCompleteListener(ProfileActivity.this, task -> {
+                                    // Sau khi sign out Google, xóa hết dữ liệu cũ
+                                    Toast.makeText(ProfileActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+
+                                    // Chuyển về màn hình đăng nhập
+                                    Intent intent = new Intent(ProfileActivity.this, AuthActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    finishAffinity();
+                                });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
+
     }
 
     // Mở thư viện ảnh

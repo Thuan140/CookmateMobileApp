@@ -1,10 +1,11 @@
 package com.example.cookmate;
 
-import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.TextUtils;
-import android.view.KeyEvent;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -12,74 +13,127 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoginEmailActivity extends AppCompatActivity {
 
     private EditText etEmail, etOtp;
     private Button btnVerify;
-    private TextView tvResendOtp;
-
-    private String generatedOtp = "";
-    private Context context;
+    private TextView tvResendOtp, tvCountdown;
+    private SessionManager session;
+    private CountDownTimer countDownTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_email);
 
-        context = this;
         etEmail = findViewById(R.id.et_email);
         etOtp = findViewById(R.id.et_otp);
         btnVerify = findViewById(R.id.btn_verify);
         tvResendOtp = findViewById(R.id.tv_resend_otp);
+        tvCountdown = findViewById(R.id.tv_countdown);
+        session = new SessionManager(this);
 
-        // ⌨️ Khi người dùng nhấn Enter sau khi nhập email
-        etEmail.setOnKeyListener((v, keyCode, event) -> {
-            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                String email = etEmail.getText().toString().trim();
-                if (TextUtils.isEmpty(email)) {
-                    Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show();
-                } else {
-                    generatedOtp = EmailOtpHelper.sendOtpToEmail(email);
-                    Toast.makeText(context, "OTP sent to " + email, Toast.LENGTH_SHORT).show();
-                }
-                return true;
+        // Hiện bàn phím khi nhấn vào ô email
+        etEmail.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(etEmail, InputMethodManager.SHOW_IMPLICIT);
             }
-            return false;
         });
 
-        // 🔁 Gửi lại OTP
+        // Gửi OTP
         tvResendOtp.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
-            if (!TextUtils.isEmpty(email)) {
-                generatedOtp = EmailOtpHelper.sendOtpToEmail(email);
-                Toast.makeText(context, "OTP resent to " + email, Toast.LENGTH_SHORT).show();
+            if (TextUtils.isEmpty(email)) {
+                Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
-        // ✅ Xác minh OTP
-        btnVerify.setOnClickListener(v -> {
-            String enteredOtp = etOtp.getText().toString().trim();
-            String email = etEmail.getText().toString().trim();
-            if (enteredOtp.equals(generatedOtp)) {
-                String name = email.split("@")[0];
-                String avatar = "https://example.com/avatar.jpg"; // giả định avatar mặc định
+            tvResendOtp.setEnabled(false);
+            startCountdown();
 
-                AuthApiService api = new AuthApiService(context);
-                api.loginWithGoogle(email, email, name, avatar, new AuthApiService.AuthCallback() {
-                    @Override
-                    public void onSuccess(AuthResponse response) {
-                        Toast.makeText(context, "Welcome " + response.getUser().getName(), Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        Toast.makeText(context, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
+            OtpApiService.sendOtp(email, response -> {
+                runOnUiThread(() -> {
+                    if (response.has("message")) {
+                        Toast.makeText(this, response.optString("message"), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, response.optString("error", "Send failed"), Toast.LENGTH_SHORT).show();
+                        resetCountdown();
                     }
                 });
-            } else {
-                Toast.makeText(context, "Invalid OTP", Toast.LENGTH_SHORT).show();
-            }
+            });
         });
+
+        // Xác minh OTP
+        btnVerify.setOnClickListener(v -> {
+            String email = etEmail.getText().toString().trim();
+            String otp = etOtp.getText().toString().trim();
+
+            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(otp)) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            OtpApiService.verifyOtp(email, otp, response -> {
+                runOnUiThread(() -> {
+                    if (response.has("token")) {
+                        try {
+                            JSONObject userJson = response.getJSONObject("user");
+                            User user = new User(
+                                    userJson.optString("_id"),
+                                    userJson.optString("email"),
+                                    userJson.optString("name"),
+                                    userJson.optString("avatar"),
+                                    jsonArrayToList(userJson.optJSONArray("dietaryPreferences"))
+                            );
+                            String token = response.optString("token");
+                            session.saveAuthData(token, user);
+
+                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, ProfileActivity.class));
+                            finish();
+
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Parse error", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, response.optString("error", "Invalid OTP"), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        });
+    }
+
+    // Đếm ngược 60 giây
+    private void startCountdown() {
+        tvCountdown.setText("Resend available in 60s");
+        countDownTimer = new CountDownTimer(60000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                tvCountdown.setText("Resend available in " + (millisUntilFinished / 1000) + "s");
+            }
+
+            public void onFinish() {
+                resetCountdown();
+            }
+        }.start();
+    }
+
+    private void resetCountdown() {
+        if (countDownTimer != null) countDownTimer.cancel();
+        tvCountdown.setText("");
+        tvResendOtp.setEnabled(true);
+    }
+
+    private List<String> jsonArrayToList(JSONArray array) {
+        List<String> list = new ArrayList<>();
+        if (array == null) return list;
+        for (int i = 0; i < array.length(); i++) list.add(array.optString(i));
+        return list;
     }
 }

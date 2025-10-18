@@ -33,7 +33,7 @@ public class AuthActivity extends AppCompatActivity {
 
         // 🔹 1. Cấu hình Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id1)) // lấy token xác thực từ Google
+                .requestIdToken(getString(R.string.default_web_client_id)) // lấy token xác thực từ Google
                 .requestEmail()
                 .requestProfile()
                 .build();
@@ -109,6 +109,7 @@ public class AuthActivity extends AppCompatActivity {
                 String name = account.getDisplayName();
                 String avatar = (account.getPhotoUrl() != null) ? account.getPhotoUrl().toString() : "";
 
+
                 // Gọi API Auth để xác thực với server Cookmate
                 AuthApiService authApi = new AuthApiService(AuthActivity.this);
                 authApi.loginWithGoogle(googleUserId, email, name, avatar, new AuthApiService.AuthCallback() {
@@ -123,7 +124,7 @@ public class AuthActivity extends AppCompatActivity {
                                 Toast.LENGTH_LONG).show();
 
                         // Chuyển sang ProfileActivity
-                        Intent intent = new Intent(AuthActivity.this, ProfileActivity.class);
+                        Intent intent = new Intent(AuthActivity.this, HomeActivity.class);
                         startActivity(intent);
                         finish();
                     }
