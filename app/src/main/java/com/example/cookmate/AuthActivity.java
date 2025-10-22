@@ -47,44 +47,46 @@ public class AuthActivity extends AppCompatActivity {
         });
 
         // Xử lý Google Login
-//        btnGoogleLogin.setOnClickListener(v -> {
-//            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-//            startActivityForResult(signInIntent, RC_SIGN_IN);
-//        });
         btnGoogleLogin.setOnClickListener(v -> {
-            // Mock dữ liệu Google trả về
-            String googleUserId = "123456789";
-            String email = "user@example.com";
-            String name = "John Doe";
-            String avatar = "https://example.com/avatar.jpg";
-
-            // 🔹 Gọi API Auth để test
-            AuthApiService authApi = new AuthApiService(AuthActivity.this);
-            authApi.loginWithGoogle(googleUserId, email, name, avatar, new AuthApiService.AuthCallback() {
-                @Override
-                public void onSuccess(AuthResponse response) {
-                    // Lưu token và user
-                    SessionManager session = new SessionManager(AuthActivity.this);
-                    session.saveAuthData(response.getToken(), response.getUser());
-
-                    Toast.makeText(AuthActivity.this,
-                            "Welcome " + response.getUser().getName(),
-                            Toast.LENGTH_LONG).show();
-
-                    // Chuyển sang ProfileActivity
-                    Intent intent = new Intent(AuthActivity.this, HomeActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-
-                @Override
-                public void onError(String errorMessage) {
-                    Toast.makeText(AuthActivity.this,
-                            "Error: " + errorMessage,
-                            Toast.LENGTH_LONG).show();
-                }
-            });
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
         });
+        //
+//        btnGoogleLogin.setOnClickListener(v -> {
+//            // Mock dữ liệu Google trả về
+//            String googleUserId = "123456789";
+//            String email = "user@example.com";
+//            String name = "John Doe";
+//            String avatar = "https://example.com/avatar.jpg";
+//
+//            // 🔹 Gọi API Auth để test
+//            AuthApiService authApi = new AuthApiService(AuthActivity.this);
+//            authApi.loginWithGoogle(googleUserId, email, name, avatar, new AuthApiService.AuthCallback() {
+//                @Override
+//                public void onSuccess(AuthResponse response) {
+//                    // Lưu token và user
+//                    SessionManager session = new SessionManager(AuthActivity.this);
+//                    session.saveAuthData(response.getToken(), response.getUser());
+//
+//                    Toast.makeText(AuthActivity.this,
+//                            "Welcome " + response.getUser().getName(),
+//                            Toast.LENGTH_LONG).show();
+//
+//                    // Chuyển sang ProfileActivity
+//                    Intent intent = new Intent(AuthActivity.this, HomeActivity.class);
+//                    startActivity(intent);
+//                    finish();
+//                }
+//
+//                @Override
+//                public void onError(String errorMessage) {
+//                    Toast.makeText(AuthActivity.this,
+//                            "Error: " + errorMessage,
+//                            Toast.LENGTH_LONG).show();
+//                }
+//            });
+//        });
+        //
     }
 
     // 🔹 2. Nhận kết quả đăng nhập Google

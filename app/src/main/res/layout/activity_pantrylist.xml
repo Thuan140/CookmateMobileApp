@@ -2,11 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_pantry"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
     tools:context=".PantryActivity">
 
+    <!-- Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerLayout"
         android:layout_width="0dp"
@@ -48,6 +50,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Search card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/searchCard"
         android:layout_width="0dp"
@@ -75,12 +78,13 @@
                 app:tint="@android:color/darker_gray" />
 
             <EditText
+                android:id="@+id/search_input"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:background="@android:color/transparent"
-                android:hint="Search"
+                android:hint="Search ingredients or categories"
                 android:inputType="text"
                 android:maxLines="1"
                 android:textSize="16sp" />
@@ -94,6 +98,7 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Expiration warning card (optional) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/expirationWarningCard"
         android:layout_width="0dp"
@@ -116,22 +121,25 @@
             android:padding="12dp">
 
             <ImageView
+                android:id="@+id/expirationWarningIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_warning"
                 app:tint="#F57C00" />
 
             <TextView
+                android:id="@+id/expirationWarningText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="1 ingredient is expiring soon"
+                android:text="0 ingredient is expiring soon"
                 android:textColor="#F57C00"
                 android:textSize="14sp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Filter / sort row -->
     <LinearLayout
         android:id="@+id/filterSortLayout"
         android:layout_width="0dp"
@@ -165,6 +173,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Categories"
+            android:layout_marginStart="8dp"
             android:backgroundTint="@android:color/transparent"
             android:textColor="@android:color/darker_gray"
             android:minHeight="0dp"
@@ -181,18 +190,25 @@
             android:layout_weight="1" />
 
         <ImageButton
+            android:id="@+id/buttonShopping"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Go to Shopping List"
+            android:src="@drawable/ic_shopping_cart" />
+
+        <ImageButton
             android:id="@+id/buttonAdd"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="24dp"
+            android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Add new item"
-            android:src="@drawable/ic_add_24"
-            app:layout_constraintBottom_toBottomOf="@+id/textViewTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/textViewTitle" />
+            android:src="@drawable/ic_add_24" />
 
         <TextView
+            android:id="@+id/sort_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sort: "
@@ -200,14 +216,17 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/sort_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="all"
+            android:text="name"
             android:textColor="@android:color/black"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginStart="4dp" />
 
         <ImageView
+            android:id="@+id/sort_toggle"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:src="@drawable/outline_arrow_downward_24"
@@ -216,6 +235,7 @@
 
     </LinearLayout>
 
+    <!-- Ingredients list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/ingredientsRecyclerView"
         android:layout_width="0dp"
@@ -228,6 +248,22 @@
         tools:itemCount="3"
         tools:listitem="@layout/activity_item_pantrylist" />
 
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/empty_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No ingredients"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/filterSortLayout"
+        app:layout_constraintBottom_toTopOf="@+id/paginationLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="40dp"/>
+
+    <!-- Pagination -->
     <LinearLayout
         android:id="@+id/paginationLayout"
         android:layout_width="0dp"
@@ -238,7 +274,6 @@
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
@@ -250,7 +285,7 @@
             android:src="@drawable/outline_arrow_back_ios_24"
             app:tint="@android:color/darker_gray" />
 
-        <!-- chỗ này mình sẽ thêm số trang bằng code -->
+        <!-- page numbers injected by code -->
         <LinearLayout
             android:id="@+id/pageNumbersContainer"
             android:layout_width="wrap_content"
@@ -271,7 +306,7 @@
 
     </LinearLayout>
 
-
+    <!-- Bottom nav -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="0dp"
@@ -280,9 +315,7 @@
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu"
-        />
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

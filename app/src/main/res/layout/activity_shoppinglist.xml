@@ -5,17 +5,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".MainActivity">
+    tools:context=".ShoppingListActivity">
+
+    <ImageView
+        android:id="@+id/back_button"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="40dp"
+        android:clickable="true"
+        android:contentDescription="Quay lại"
+        android:focusable="true"
+        android:src="@drawable/outline_arrow_back_ios_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
 
     <TextView
         android:id="@+id/textViewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="52dp"
         android:layout_marginTop="32dp"
         android:text="ShoppingList"
         android:textColor="@android:color/black"
-        android:textSize="36sp"
+        android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

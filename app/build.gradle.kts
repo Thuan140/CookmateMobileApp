@@ -57,6 +57,14 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.0")
+    implementation("androidx.cardview:cardview:1.0.0")
+// nếu dùng AndroidX material dialog etc: 
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.cardview:cardview:1.0.0")
 
 }

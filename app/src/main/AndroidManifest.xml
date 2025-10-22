@@ -37,6 +37,11 @@
         <activity android:name=".MealPlanActivity" />
         <activity android:name=".HomeActivity" />
         <activity android:name=".RecipeActivity" />
+        <activity android:name=".SelectCategoryActivity" />
+        <activity android:name=".AddIngredientCategoryActivity" />
+        <activity android:name=".UpdateIngredientCategoryActivity"
+            android:label="Update Category" />
+        <activity android:name=".ShoppingListActivity" />
 
         <activity
             android:name=".LoginEmailActivity"

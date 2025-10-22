@@ -1,6 +1,8 @@
 package com.example.cookmate.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +17,12 @@ import com.bumptech.glide.Glide;
 import com.example.cookmate.R;
 import com.example.cookmate.models.Ingredient;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.VH> {
 
@@ -54,11 +61,32 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.VH> {
 
         double q = item.getQuantity();
         String qText = (q == (long) q) ? String.valueOf((long) q) : String.valueOf(q);
-        holder.quantity.setText(qText + (item.getUnit() != null ? " " + item.getUnit() : ""));
+        holder.quantity.setText(qText + (item.getUnit() != null && !item.getUnit().isEmpty() ? " " + item.getUnit() : ""));
 
-        holder.expiry.setText(item.getExpiryDate() != null && !item.getExpiryDate().isEmpty()
-                ? "Expires: " + item.getExpiryDate().split("T")[0]
-                : "No expiry date");
+        // expiry display and color logic
+        String expiryIso = item.getExpiryDate();
+        if (expiryIso != null && !expiryIso.isEmpty()) {
+            String displayDate = expiryIso.contains("T") ? expiryIso.split("T")[0] : expiryIso;
+            holder.expiry.setText("Expires: " + displayDate);
+
+            long days = daysUntilExpiry(expiryIso);
+            // debug log (optional)
+            // Log.d("PantryAdapter", "Ingredient " + item.getName() + " expiry=" + expiryIso + " days=" + days);
+
+            if (days < 0) {
+                // expired -> red
+                holder.expiry.setTextColor(Color.parseColor("#D32F2F"));
+            } else if (days <= 2) {
+                // within 2 days -> orange
+                holder.expiry.setTextColor(Color.parseColor("#F57C00"));
+            } else {
+                // normal -> dark text
+                holder.expiry.setTextColor(Color.parseColor("#222222"));
+            }
+        } else {
+            holder.expiry.setText("No expiry date");
+            holder.expiry.setTextColor(Color.parseColor("#222222"));
+        }
 
         // load image (if any)
         if (item.getImage() != null && !item.getImage().isEmpty()) {
@@ -103,7 +131,51 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.VH> {
             expiry = itemView.findViewById(R.id.ingredientExpiryDate);
             editIcon = itemView.findViewById(R.id.editIcon);
             deleteIcon = itemView.findViewById(R.id.deleteIcon);
-            ingredientImage = itemView.findViewById(R.id.ingredientImage); // ensure this id exists in layout
+            ingredientImage = itemView.findViewById(R.id.ingredientImage);
+        }
+    }
+
+    private long daysUntilExpiry(String expiryIso) {
+        if (expiryIso == null || expiryIso.trim().isEmpty()) return Long.MAX_VALUE;
+        try {
+            // expecting ISO like "2025-10-21T00:00:00.000Z"
+            SimpleDateFormat isoSdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+            isoSdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date expDate = null;
+            try {
+                expDate = isoSdf.parse(expiryIso);
+            } catch (Exception e) {
+                // fallback: if server gave only date "yyyy-MM-dd"
+                try {
+                    SimpleDateFormat sdfDateOnly = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    sdfDateOnly.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    expDate = sdfDateOnly.parse(expiryIso);
+                } catch (Exception ex) {
+                    // give up
+                    expDate = null;
+                }
+            }
+            if (expDate == null) return Long.MAX_VALUE;
+
+            // convert to local calendar, normalize to local midnight of that date
+            Calendar expLocal = Calendar.getInstance();
+            expLocal.setTime(expDate);
+            expLocal.set(Calendar.HOUR_OF_DAY, 0);
+            expLocal.set(Calendar.MINUTE, 0);
+            expLocal.set(Calendar.SECOND, 0);
+            expLocal.set(Calendar.MILLISECOND, 0);
+
+            Calendar todayLocal = Calendar.getInstance();
+            todayLocal.set(Calendar.HOUR_OF_DAY, 0);
+            todayLocal.set(Calendar.MINUTE, 0);
+            todayLocal.set(Calendar.SECOND, 0);
+            todayLocal.set(Calendar.MILLISECOND, 0);
+
+            long diffMillis = expLocal.getTimeInMillis() - todayLocal.getTimeInMillis();
+            return diffMillis / (24L * 60L * 60L * 1000L);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Long.MAX_VALUE;
         }
     }
 }
