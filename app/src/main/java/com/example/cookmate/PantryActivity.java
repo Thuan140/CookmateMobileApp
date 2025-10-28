@@ -124,6 +124,11 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
         buttonAll = findViewById(R.id.buttonAll);
         buttonCategories = findViewById(R.id.buttonCategories);
         sortValue = findViewById(R.id.sort_value);
+        sortValue.setOnClickListener(v -> {
+            // giả sử sort_toggle là id của ImageView/Icon bạn đã bind trước đó
+            View sortToggle = findViewById(R.id.sort_toggle);
+            if (sortToggle != null) sortToggle.performClick();
+        });
         emptyText = findViewById(R.id.empty_text);
         buttonShopping = findViewById(R.id.buttonShopping);
         buttonShopping.setOnClickListener(v -> {

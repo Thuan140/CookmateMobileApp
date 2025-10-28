@@ -7,11 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.cookmate.R;
 import com.example.cookmate.models.FavoriteItem;
 
@@ -62,10 +62,16 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.VH> {
     public void onBindViewHolder(@NonNull VH holder, int position) {
         FavoriteItem it = items.get(position);
         holder.title.setText(it.getTitle() != null ? it.getTitle() : "");
-        holder.desc.setText(it.getCreator() != null && !it.getCreator().isEmpty() ? it.getCreator() : "Unknown");
+        holder.readyIn.setText(it.getReadyInMinutes() != null ? "Ready In: " + it.getReadyInMinutes() + " mins" : "");
+        holder.serves.setText(it.getServings() != null ? "Serves: " + it.getServings() : "");
 
+        String imageUrl = it.getImage();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(ctx).load(imageUrl).centerCrop().into(holder.image);
+        } else {
+            holder.image.setImageResource(R.drawable.food);
+        }
 
-        // TODO: load image with Glide/Picasso if imageUrl present. For now use default src in layout.
         holder.removeBtn.setOnClickListener(v -> {
             if (callbacks != null) callbacks.onRemoveClicked(it);
         });
@@ -80,13 +86,14 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.VH> {
 
     static class VH extends RecyclerView.ViewHolder {
         ImageView image;
-        TextView title, desc;
+        TextView title, readyIn, serves;
         ImageButton removeBtn;
         VH(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.recipe_image);
             title = itemView.findViewById(R.id.recipe_title);
-            desc = itemView.findViewById(R.id.recipe_description);
+            readyIn = itemView.findViewById(R.id.recipe_ready_in);
+            serves = itemView.findViewById(R.id.recipe_serves);
             removeBtn = itemView.findViewById(R.id.btn_remove_favorite);
         }
     }

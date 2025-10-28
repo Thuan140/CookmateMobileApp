@@ -150,8 +150,10 @@
 //}
 package com.example.cookmate;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -203,6 +205,27 @@ public class HomeActivity extends AppCompatActivity {
             public void onError(String error) {
                 Toast.makeText(HomeActivity.this, "Failed: " + error, Toast.LENGTH_LONG).show();
             }
+        });
+        View btnHub = findViewById(R.id.btn_Hub);     // Hub
+        View btnList = findViewById(R.id.btn_list);    // ♥ List
+        View btnPantry = findViewById(R.id.btn_Pantry);  // Pantry
+
+        // Mở HubActivity khi bấm Hub
+        btnHub.setOnClickListener(v -> {
+            Intent i = new Intent(HomeActivity.this, HubActivity.class);
+            startActivity(i);
+        });
+
+        // Mở FavoritesActivity khi bấm ♥ List
+        btnList.setOnClickListener(v -> {
+            Intent i = new Intent(HomeActivity.this, FavoriteListActivity.class);
+            startActivity(i);
+        });
+
+        // Mở PantryActivity khi bấm Pantry
+        btnPantry.setOnClickListener(v -> {
+            Intent i = new Intent(HomeActivity.this, PantryActivity.class);
+            startActivity(i);
         });
     }
 

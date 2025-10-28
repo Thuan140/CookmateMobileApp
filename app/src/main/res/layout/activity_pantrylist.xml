@@ -89,12 +89,6 @@
                 android:maxLines="1"
                 android:textSize="16sp" />
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/outline_dehaze_24"
-                app:tint="@android:color/darker_gray" />
-
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -142,47 +136,47 @@
     <!-- Filter / sort row -->
     <LinearLayout
         android:id="@+id/filterSortLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="395dp"
+        android:layout_height="40dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        android:orientation="horizontal"
+        android:layout_marginEnd="16dp"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/expirationWarningCard">
 
         <Button
             android:id="@+id/buttonAll"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="All"
             android:backgroundTint="@android:color/black"
-            android:textColor="@android:color/white"
             android:minHeight="0dp"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp"
             android:paddingTop="8dp"
+            android:paddingEnd="16dp"
             android:paddingBottom="8dp"
-            style="?android:attr/buttonBarButtonStyle"
-            app:cornerRadius="20dp"/>
+            android:text="All"
+            android:textColor="@android:color/white"
+            app:cornerRadius="20dp" />
 
         <Button
             android:id="@+id/buttonCategories"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Categories"
             android:layout_marginStart="8dp"
             android:backgroundTint="@android:color/transparent"
-            android:textColor="@android:color/darker_gray"
             android:minHeight="0dp"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp"
             android:paddingTop="8dp"
+            android:paddingEnd="16dp"
             android:paddingBottom="8dp"
-            style="?android:attr/buttonBarButtonStyle"
-            app:cornerRadius="20dp"/>
+            android:text="Categories"
+            android:textColor="@android:color/darker_gray"
+            app:cornerRadius="20dp" />
 
         <View
             android:layout_width="0dp"
@@ -191,8 +185,8 @@
 
         <ImageButton
             android:id="@+id/buttonShopping"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Go to Shopping List"
@@ -200,8 +194,8 @@
 
         <ImageButton
             android:id="@+id/buttonAdd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="41dp"
+            android:layout_height="40dp"
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Add new item"
@@ -219,18 +213,18 @@
             android:id="@+id/sort_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:text="name"
             android:textColor="@android:color/black"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginStart="4dp" />
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/sort_toggle"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:src="@drawable/outline_arrow_downward_24"
             android:layout_marginStart="4dp"
+            android:src="@drawable/outline_arrow_downward_24"
             app:tint="@android:color/black" />
 
     </LinearLayout>
@@ -309,13 +303,22 @@
     <!-- Bottom nav -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
+        android:background="@drawable/bg_bottom_nav"
+        android:elevation="6dp"
+        android:paddingHorizontal="4dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        app:itemIconSize="24dp"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:itemRippleColor="@color/nav_ripple_color"
         app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

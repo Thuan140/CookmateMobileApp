@@ -1,10 +1,18 @@
 package com.example.cookmate;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
-import android.widget.Toast;
+import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +24,7 @@ import com.example.cookmate.models.FavoriteItem;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonParser;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -27,15 +35,18 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class FavoriteListActivity extends AppCompatActivity implements FavoriteAdapter.Callbacks {
     private static final String TAG = "FavoriteList";
     private static final String BASE_URL = "https://cookm8.vercel.app/api/favorites";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+    // pagination page size
+    private static final int ITEMS_PER_PAGE = 4;
 
     private SessionManager sessionManager;
     private String authToken;
@@ -47,19 +58,48 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
     private FavoriteAdapter adapter;
     private ImageView backBtn;
 
+    // data lists
+    private final List<FavoriteItem> allItems = new ArrayList<>();      // all items from server
+    private final List<FavoriteItem> filteredList = new ArrayList<>(); // after search + sort
+    private int currentPage = 1;
+    private int totalPages = 1;
+
+    // UI controls
+    private LinearLayout paginationLayout;
+    private EditText searchInput;
+    private TextView sortTextView; // textView7 in your xml
+
+    // current sort: "name", "time", "servings"
+    private String currentSort = "name";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favoritelist);
 
-        // init views
         recyclerView = findViewById(R.id.favoritesRecyclerView);
-        backBtn = findViewById(R.id.imageView2); // or use a proper back id if layout has one
+        backBtn = findViewById(R.id.imageView2);
+        paginationLayout = findViewById(R.id.paginationLayout);
+        searchInput = findViewById(R.id.search_input);
+        sortTextView = findViewById(R.id.textView7); // "Newest" in your xml
 
-        backBtn.setOnClickListener(v -> {
-            onBackPressed();
-            overridePendingTransition(0,0);
-        });
+        ImageView backButton = findViewById(R.id.back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                onBackPressed(); // trở về màn trước
+                overridePendingTransition(0, 0); // không hiệu ứng chuyển
+            });
+        }
+
+
+        // make sortTextView clickable to toggle sort
+        if (sortTextView != null) {
+            sortTextView.setOnClickListener(v -> {
+                toggleSort();
+            });
+            // show initial label
+            updateSortLabel();
+        }
 
         sessionManager = new SessionManager(this);
         authToken = sessionManager.getToken();
@@ -73,10 +113,40 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        // search input realtime
+        if (searchInput != null) {
+            searchInput.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    applyFiltersAndShow();
+                }
+                @Override public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        // initial load
         fetchFavorites();
     }
 
-    // Try GET; if server expects POST, try POST fallback (no body)
+    private void toggleSort() {
+        // rotate through sorts: name -> time -> servings -> name
+        if ("name".equals(currentSort)) currentSort = "time";
+        else if ("time".equals(currentSort)) currentSort = "servings";
+        else currentSort = "name";
+        updateSortLabel();
+        applyFiltersAndShow();
+    }
+
+    private void updateSortLabel() {
+        if (sortTextView == null) return;
+        switch (currentSort) {
+            case "time": sortTextView.setText("Time"); break;
+            case "servings": sortTextView.setText("Servings"); break;
+            default: sortTextView.setText("Name"); break;
+        }
+    }
+
+    // -----------------------------------------
     private void fetchFavorites() {
         Request req = new Request.Builder()
                 .url(BASE_URL)
@@ -88,39 +158,6 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
         client.newCall(req).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 Log.w(TAG, "GET favorites failed: " + e.getMessage());
-                // try POST fallback
-                fetchFavoritesPostFallback();
-            }
-
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                if (response.code() == 401) {
-                    runOnUiThread(() -> Toast.makeText(FavoriteListActivity.this, "Phiên đăng nhập hết hạn", Toast.LENGTH_LONG).show());
-                    return;
-                }
-                if (!response.isSuccessful()) {
-                    Log.w(TAG, "GET not successful: " + response.code());
-                    // try POST fallback
-                    fetchFavoritesPostFallback();
-                    return;
-                }
-                String body = response.body().string();
-                parseFavoritesResponse(body);
-            }
-        });
-    }
-
-    // POST fallback (some endpoints return list on POST with empty body)
-    private void fetchFavoritesPostFallback() {
-        RequestBody rb = RequestBody.create("{}", JSON);
-        Request req = new Request.Builder()
-                .url(BASE_URL)
-                .post(rb)
-                .addHeader("Authorization", "Bearer " + authToken)
-                .addHeader("Accept", "application/json")
-                .build();
-
-        client.newCall(req).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> Toast.makeText(FavoriteListActivity.this, "Không thể tải favorites: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
@@ -139,102 +176,184 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
         });
     }
 
-    // Parse JSON response: looks for array fields like "recipes" or "favorites" or top-level array
     private void parseFavoritesResponse(String body) {
         try {
-            JsonObject root = gson.fromJson(body, JsonObject.class);
-            List<FavoriteItem> list = new ArrayList<>();
+            JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+            allItems.clear();
 
             if (root != null && root.has("recipes") && root.get("recipes").isJsonArray()) {
-                for (var el : root.getAsJsonArray("recipes")) {
+                for (JsonElement el : root.getAsJsonArray("recipes")) {
                     if (!el.isJsonObject()) continue;
                     JsonObject r = el.getAsJsonObject();
 
-                    // id (may be number or string)
-                    String id = "";
-                    if (r.has("id")) {
-                        // convert any primitive to string
-                        try { id = r.get("id").getAsString(); }
-                        catch (Exception ex) { id = String.valueOf(r.get("id").getAsLong()); }
-                    }
-
+                    String id = r.has("id") ? r.get("id").getAsString() : "";
                     String image = r.has("image") && !r.get("image").isJsonNull() ? r.get("image").getAsString() : "";
                     String title = r.has("title") && !r.get("title").isJsonNull() ? r.get("title").getAsString() : "";
+                    Integer ready = r.has("readyInMinutes") && !r.get("readyInMinutes").isJsonNull() ? r.get("readyInMinutes").getAsInt() : null;
+                    Integer serves = r.has("servings") && !r.get("servings").isJsonNull() ? r.get("servings").getAsInt() : null;
 
-                    // Find creator/author from several possible fields
-                    String creator = "";
-                    String[] candidateKeys = new String[] {
-                            "creditsText", "creditText", "sourceName", "author", "creator", "createdBy", "source"
-                    };
-                    for (String k : candidateKeys) {
-                        if (r.has(k) && !r.get(k).isJsonNull()) {
-                            creator = r.get(k).getAsString();
-                            if (creator != null && !creator.trim().isEmpty()) break;
-                        }
-                    }
-                    // fallback: try nested object like "source" : { "name": "..." }
-                    if ((creator == null || creator.isEmpty()) && r.has("source") && r.get("source").isJsonObject()) {
-                        JsonObject src = r.getAsJsonObject("source");
-                        if (src.has("name") && !src.get("name").isJsonNull()) {
-                            creator = src.get("name").getAsString();
-                        }
-                    }
-
-                    // final fallback: use sourceUrl domain (extract host) if present
-                    if ((creator == null || creator.isEmpty()) && r.has("sourceUrl") && !r.get("sourceUrl").isJsonNull()) {
-                        try {
-                            String url = r.get("sourceUrl").getAsString();
-                            java.net.URI uri = new java.net.URI(url);
-                            String host = uri.getHost();
-                            if (host != null) {
-                                creator = host.replaceFirst("^www\\.", "");
-                            } else {
-                                creator = url;
-                            }
-                        } catch (Exception ignored) { }
-                    }
-
-                    if (creator == null) creator = "";
-
-                    FavoriteItem fi = new FavoriteItem(id, image, title, creator);
-                    list.add(fi);
-                }
-            } else {
-                // fallback: try parse as array of recipes directly
-                Type listType = new TypeToken<List<JsonObject>>(){}.getType();
-                List<JsonObject> rawList = gson.fromJson(body, listType);
-                if (rawList != null) {
-                    for (JsonObject r : rawList) {
-                        String id = r.has("id") ? r.get("id").getAsString() : "";
-                        String image = r.has("image") ? r.get("image").getAsString() : "";
-                        String title = r.has("title") ? r.get("title").getAsString() : "";
-                        String creator = "";
-                        if (r.has("creditsText")) creator = r.get("creditsText").getAsString();
-                        list.add(new FavoriteItem(id, image, title, creator));
-                    }
+                    FavoriteItem it = new FavoriteItem(id, image, title, ready, serves);
+                    allItems.add(it);
                 }
             }
 
-            final List<FavoriteItem> finalList = list;
             runOnUiThread(() -> {
-                adapter.setItems(finalList);
-                if (finalList.isEmpty()) {
+                currentPage = 1;
+                applyFiltersAndShow();
+                if (allItems.isEmpty()) {
                     Toast.makeText(FavoriteListActivity.this, "Không có mục yêu thích", Toast.LENGTH_SHORT).show();
                 }
             });
         } catch (Exception ex) {
-            Log.e("FavoriteParse", "Parse error: " + ex.getMessage(), ex);
+            Log.e(TAG, "Parse favorites error: " + ex.getMessage(), ex);
             runOnUiThread(() -> Toast.makeText(FavoriteListActivity.this, "Lỗi phân tích dữ liệu", Toast.LENGTH_SHORT).show());
         }
     }
 
+    // ========== Filter / Sort / Pagination ==========
+    private void applyFiltersAndShow() {
+        // 1) filter by search
+        String q = (searchInput != null) ? searchInput.getText().toString().trim().toLowerCase() : "";
+        filteredList.clear();
+        for (FavoriteItem it : allItems) {
+            if (q.isEmpty()) {
+                filteredList.add(it);
+            } else {
+                boolean match = false;
+                if (it.getTitle() != null && it.getTitle().toLowerCase().contains(q)) match = true;
+                // try matching other fields optionally
+                if (!match && it.getId() != null && it.getId().toLowerCase().contains(q)) match = true;
+                if (match) filteredList.add(it);
+            }
+        }
 
-    // Remove favorite: assume DELETE /api/favorites with body { "recipeId": "<id>" }
+        // 2) sort
+        if ("time".equals(currentSort)) {
+            Collections.sort(filteredList, (a, b) -> {
+                Integer ra = a.getReadyInMinutes() != null ? a.getReadyInMinutes() : Integer.MAX_VALUE;
+                Integer rb = b.getReadyInMinutes() != null ? b.getReadyInMinutes() : Integer.MAX_VALUE;
+                return Integer.compare(ra, rb); // smaller time first
+            });
+        } else if ("servings".equals(currentSort)) {
+            Collections.sort(filteredList, (a, b) -> {
+                Integer sa = a.getServings() != null ? a.getServings() : Integer.MIN_VALUE;
+                Integer sb = b.getServings() != null ? b.getServings() : Integer.MIN_VALUE;
+                return Integer.compare(sb, sa); // larger servings first
+            });
+        } else { // name
+            Collections.sort(filteredList, (a, b) -> {
+                String na = a.getTitle() != null ? a.getTitle() : "";
+                String nb = b.getTitle() != null ? b.getTitle() : "";
+                return na.compareToIgnoreCase(nb);
+            });
+        }
+
+        // 3) pagination
+        totalPages = Math.max(1, (int) Math.ceil((double) filteredList.size() / ITEMS_PER_PAGE));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        createPageNumbers(); // update page buttons
+
+        showPage(currentPage);
+    }
+
+    private void createPageNumbers() {
+        if (paginationLayout == null) return;
+        paginationLayout.removeAllViews();
+
+        // prev arrow
+        ImageView prev = new ImageView(this);
+        prev.setImageResource(R.drawable.outline_arrow_back_ios_24);
+        LinearLayout.LayoutParams imgLp = new LinearLayout.LayoutParams(dpToPx(40), dpToPx(40));
+        imgLp.setMargins(dpToPx(6),0,dpToPx(6),0);
+        prev.setLayoutParams(imgLp);
+        prev.setPadding(dpToPx(6), dpToPx(6), dpToPx(6), dpToPx(6));
+        prev.setOnClickListener(v -> {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        });
+        paginationLayout.addView(prev);
+
+        // page numbers (create up to totalPages)
+        for (int i = 1; i <= totalPages; i++) {
+            final int p = i;
+            TextView tv = new TextView(this);
+            tv.setText(String.valueOf(i));
+            tv.setGravity(Gravity.CENTER);
+            tv.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(8));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(dpToPx(4), 0, dpToPx(4), 0);
+            tv.setLayoutParams(lp);
+            tv.setBackgroundResource(R.drawable.bg_view_border);
+            tv.setOnClickListener(v -> showPage(p));
+            paginationLayout.addView(tv);
+        }
+
+        // next arrow
+        ImageView next = new ImageView(this);
+        next.setImageResource(R.drawable.outline_arrow_forward_ios_24);
+        next.setLayoutParams(imgLp);
+        next.setPadding(dpToPx(6), dpToPx(6), dpToPx(6), dpToPx(6));
+        next.setOnClickListener(v -> {
+            if (currentPage < totalPages) {
+                showPage(currentPage + 1);
+            }
+        });
+        paginationLayout.addView(next);
+
+        updatePageColors();
+    }
+
+    private void showPage(int page) {
+        currentPage = page;
+        int start = (page - 1) * ITEMS_PER_PAGE;
+        int end = Math.min(start + ITEMS_PER_PAGE, filteredList.size());
+        List<FavoriteItem> pageItems = new ArrayList<>();
+        if (start < end) pageItems.addAll(filteredList.subList(start, end));
+        adapter.setItems(pageItems);
+        updatePageColors();
+    }
+
+    private void updatePageColors() {
+        if (paginationLayout == null) return;
+        // children: prev, pages..., next
+        int childCount = paginationLayout.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View v = paginationLayout.getChildAt(i);
+            if (v instanceof TextView) {
+                int pageNum = Integer.parseInt(((TextView) v).getText().toString());
+                if (pageNum == currentPage) {
+                    ((TextView) v).setTextColor(getResources().getColor(android.R.color.white));
+                    v.setBackgroundColor(getResources().getColor(android.R.color.black));
+                } else {
+                    ((TextView) v).setTextColor(getResources().getColor(android.R.color.darker_gray));
+                    v.setBackgroundResource(R.drawable.bg_view_border);
+                }
+            }
+        }
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    // ========== Confirm & Delete (unchanged) ==========
+    private void confirmRemoveFavorite(FavoriteItem item) {
+        if (item == null) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Favorite")
+                .setMessage("Do you want to delete \"" + (item.getTitle() == null ? "" : item.getTitle()) + "\"?")
+                .setPositiveButton("Delete", (d, w) -> removeFavorite(item))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void removeFavorite(FavoriteItem item) {
         if (item == null || item.getId() == null) return;
 
         JsonObject body = new JsonObject();
-        // try common keys: "recipeId" or "favoriteId"
         body.addProperty("recipeId", item.getId());
 
         RequestBody rb = RequestBody.create(body.toString(), JSON);
@@ -255,11 +374,10 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
                     runOnUiThread(() -> Toast.makeText(FavoriteListActivity.this, "Lỗi xoá: " + response.code(), Toast.LENGTH_SHORT).show());
                     return;
                 }
-                String resp = response.body().string();
-                // If success, remove locally
+                // on success: refetch so UI + pagination sync
                 runOnUiThread(() -> {
-                    adapter.removeById(item.getId());
                     Toast.makeText(FavoriteListActivity.this, "Đã xoá khỏi yêu thích", Toast.LENGTH_SHORT).show();
+                    fetchFavorites();
                 });
             }
         });
@@ -267,13 +385,11 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
 
     // Adapter callbacks
     @Override
-    public void onRemoveClicked(FavoriteItem item) {
-        removeFavorite(item);
-    }
+    public void onRemoveClicked(FavoriteItem item) { confirmRemoveFavorite(item); }
 
     @Override
     public void onItemClicked(FavoriteItem item) {
-        // open recipe detail (if you have), otherwise toast
-        Toast.makeText(this, item.getTitle() != null ? item.getTitle() : "Mở chi tiết", Toast.LENGTH_SHORT).show();
+        // open detail later; for now show toast
+        Toast.makeText(this, item.getTitle() != null ? item.getTitle() : "Open", Toast.LENGTH_SHORT).show();
     }
 }

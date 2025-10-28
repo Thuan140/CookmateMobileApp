@@ -43,7 +43,7 @@
     <TextView style="@style/CalendarDayCell" tools:text="28" />
     <TextView style="@style/CalendarDayCell" tools:text="29" />
     <TextView style="@style/CalendarDayCell" tools:text="30" />
-    <TextView style="@style/CalendarDayCellEmpty" />
+    <TextView style="@style/CalendarDayCell" tools:text="31" />
     <TextView style="@style/CalendarDayCellEmpty" />
     <TextView style="@style/CalendarDayCellEmpty" />
 </merge>
