@@ -12,20 +12,33 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.example.cookmate.models.FavoriteItem;
-import java.util.ArrayList;
-import java.util.List;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import android.widget.NumberPicker;
+import android.widget.Button;
+import android.widget.FrameLayout;
 
 import com.example.cookmate.adapters.MealPlanAdapter;
+import com.example.cookmate.models.FavoriteItem;
 import com.example.cookmate.models.MealPlanItem;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -35,17 +48,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-
+/**
+ * MealPlanActivity với kéo-thả và lưu thứ tự tạm bằng SharedPreferences.
+ */
 public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapter.Callbacks {
     private static final String TAG = "MealPlanActivity";
     private static final String BASE_URL = "https://cookm8.vercel.app/api/meal-plans";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    // cache favorites để reuse
     private final List<FavoriteItem> cachedFavorites = new ArrayList<>();
 
     private SessionManager sessionManager;
@@ -69,6 +79,9 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
     private final Calendar calendar = Calendar.getInstance(); // used to build shown month
     private Calendar selectedCalendar = null; // day selected by user
 
+    // Drag state
+    private ItemTouchHelper itemTouchHelper;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +100,7 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         btnResetMonth = findViewById(R.id.btnResetMonth);
 
         recyclerView = findViewById(R.id.mealPlanRecyclerView);
-        backBtn = findViewById(R.id.back_button); // may be null if your layout doesn't have
+        backBtn = findViewById(R.id.back_button);
 
         ImageView btnAdd = findViewById(R.id.btnAddMealPlan);
         if (btnAdd != null) {
@@ -105,9 +118,47 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             return;
         }
 
-        adapter = new MealPlanAdapter(this, this);
+        // adapter với id->title map (bắt đầu rỗng)
+        adapter = new MealPlanAdapter(this, this, buildIdTitleMap());
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+        // thiết lập ItemTouchHelper (kéo-thả)
+        ItemTouchHelper.Callback cb = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+
+            // xử lý di chuyển
+            @Override
+            public boolean onMove(RecyclerView rv, RecyclerView.ViewHolder from, RecyclerView.ViewHolder to) {
+                int fromPos = from.getAdapterPosition();
+                int toPos = to.getAdapterPosition();
+                adapter.moveItem(fromPos, toPos);
+                return true;
+            }
+
+            // không support swipe -> noop
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) { }
+
+            // highlight khi kéo (tuỳ chỉnh)
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE && selectedCalendar != null) {
+                    // khi thao tác kết thúc -> lưu thứ tự hiện tại cho ngày đang chọn
+                    saveOrderForDate(selectedCalendar, adapter.getItemsCopy());
+                }
+            }
+
+            @Override
+            public void clearView(RecyclerView rv, RecyclerView.ViewHolder vh) {
+                super.clearView(rv, vh);
+                // sau khi thả xong cũng lưu để chắc chắn
+                if (selectedCalendar != null) saveOrderForDate(selectedCalendar, adapter.getItemsCopy());
+            }
+        };
+        itemTouchHelper = new ItemTouchHelper(cb);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
 
         // date navigation clicks
         if (btnPreviousMonth != null) btnPreviousMonth.setOnClickListener(v -> {
@@ -139,13 +190,14 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             currentDateInfo.setText("Ngày: " + display.format(selectedCalendar.getTime()));
         }
 
-        // load favorites into cache once
+        // load favorites into cache once (để hiển thị tên recipe)
         loadFavoritesCache();
 
-        // fetch data (meal plans)
+        // fetch meal plans từ server
         fetchMealPlans();
     }
 
+    // fetch meal plans
     private void fetchMealPlans() {
         Request req = new Request.Builder()
                 .url(BASE_URL)
@@ -200,11 +252,8 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             }
 
             runOnUiThread(() -> {
-                // refresh calendar markers and show selected day's items below
                 buildCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-                // if selectedCalendar null -> set today
                 if (selectedCalendar == null) selectedCalendar = Calendar.getInstance();
-                // show items for selected day
                 showMealsForDate(selectedCalendar);
             });
         } catch (Exception ex) {
@@ -213,22 +262,16 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         }
     }
 
-    // Build calendar grid for given year/month (month is 0-based)
+    // Build calendar (giữ nguyên logic hiển thị ô vuông)
     private void buildCalendar(int year, int month) {
         if (calendarGrid == null) return;
         calendarGrid.removeAllViews();
 
-        // compute preferred square cell size (try to use real width; fallback to density-based)
         int gridWidth = calendarGrid.getWidth();
         float density = getResources().getDisplayMetrics().density;
-        int cellSizePx;
-        if (gridWidth > 0) {
-            cellSizePx = gridWidth / 7;
-        } else {
-            cellSizePx = (int) (48 * density);
-        }
+        int cellSizePx = gridWidth > 0 ? gridWidth / 7 : (int) (48 * density);
 
-        // 1) Add weekday headers (Sunday .. Saturday) programmatically
+        // weekday headers
         String[] headers = new String[]{"CN","T2","T3","T4","T5","T6","T7"};
         for (String h : headers) {
             TextView hv = new TextView(this);
@@ -246,21 +289,20 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             calendarGrid.addView(hv);
         }
 
-        // update title
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM, yyyy", Locale.getDefault());
         Calendar tmp = Calendar.getInstance();
         tmp.set(year, month, 1);
-        if (currentMonthYear != null) currentMonthYear.setText(sdf.format(tmp.getTime()));
+        if (currentMonthYear != null) {
+            currentMonthYear.setText(sdf.format(tmp.getTime()));
+            currentMonthYear.setOnClickListener(v -> showDateWheelBottomSheet());
+        }
 
-        // first weekday of month
         Calendar calFirst = Calendar.getInstance();
         calFirst.set(year, month, 1);
-        int firstWeekday = calFirst.get(Calendar.DAY_OF_WEEK); // 1..7
-
+        int firstWeekday = calFirst.get(Calendar.DAY_OF_WEEK);
         int daysInMonth = calFirst.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        // blanks before first day (we want Sunday-start)
-        int blanks = firstWeekday - Calendar.SUNDAY; // if firstWeekday==1 -> 0
+        int blanks = firstWeekday - Calendar.SUNDAY;
         if (blanks < 0) blanks = 0;
         for (int i = 0; i < blanks; i++) {
             View placeholder = new View(this);
@@ -272,7 +314,6 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             calendarGrid.addView(placeholder);
         }
 
-        // add day cells (pass cellSizePx so height ~= width)
         for (int d = 1; d <= daysInMonth; d++) {
             Calendar dayCal = Calendar.getInstance();
             dayCal.set(year, month, d, 0, 0, 0);
@@ -282,14 +323,12 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             calendarGrid.addView(dayCell);
         }
 
-        // update selected date info text
         if (selectedCalendar != null && currentDateInfo != null) {
             SimpleDateFormat display = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
             currentDateInfo.setText("Ngày: " + display.format(selectedCalendar.getTime()));
         }
     }
 
-    // check if any mealPlan has the same yyyy-MM-dd as dayCal
     private boolean hasMealPlanOn(Calendar dayCal) {
         for (MealPlanItem mp : mealPlans) {
             if (mp == null || mp.getDate() == null) continue;
@@ -310,7 +349,6 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         return false;
     }
 
-    // create day cell — changed to accept cellHeightPx so height ~ width
     private View makeDayCell(int dayNumber, boolean hasPlan, Calendar dayCal, int cellHeightPx) {
         TextView tv = new TextView(this);
         tv.setText(String.valueOf(dayNumber));
@@ -322,13 +360,11 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
         GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
         lp.width = 0;
-        // use computed cellHeightPx (so roughly square)
         lp.height = cellHeightPx > 0 ? cellHeightPx : (int) (64 * getResources().getDisplayMetrics().density);
         lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
         lp.setMargins(4, 4, 4, 4);
         tv.setLayoutParams(lp);
 
-        // highlight today
         Calendar today = Calendar.getInstance();
         if (today.get(Calendar.YEAR) == dayCal.get(Calendar.YEAR)
                 && today.get(Calendar.MONTH) == dayCal.get(Calendar.MONTH)
@@ -338,7 +374,6 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             tv.setBackgroundResource(android.R.color.transparent);
         }
 
-        // if selectedCalendar matches -> special highlight
         if (selectedCalendar != null
                 && selectedCalendar.get(Calendar.YEAR) == dayCal.get(Calendar.YEAR)
                 && selectedCalendar.get(Calendar.MONTH) == dayCal.get(Calendar.MONTH)
@@ -349,34 +384,28 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             tv.setTextColor(getResources().getColor(android.R.color.black));
         }
 
-        // show marker if hasPlan
         if (hasPlan) {
             tv.setText(tv.getText() + " •");
             tv.setCompoundDrawablePadding(6);
         }
 
         tv.setOnClickListener(v -> {
-            // when day clicked: select it and show meals for that day in recyclerView
             selectedCalendar = (Calendar) dayCal.clone();
-            // set selectedCalendar to midday local to avoid timezone shifting when formatting to UTC
             selectedCalendar.set(Calendar.HOUR_OF_DAY, 12);
             selectedCalendar.set(Calendar.MINUTE, 0);
             selectedCalendar.set(Calendar.SECOND, 0);
             selectedCalendar.set(Calendar.MILLISECOND, 0);
 
-            // rebuild month to update selected highlight
             buildCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-            // update the small currentDateInfo text
             SimpleDateFormat display = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
             currentDateInfo.setText("Ngày: " + display.format(selectedCalendar.getTime()));
-            // show meals for this date in recycler
             showMealsForDate(selectedCalendar);
         });
 
         return tv;
     }
 
-    // filter mealPlans for chosen day and update adapter (show below calendar)
+    // show meals for a given date
     private void showMealsForDate(Calendar dayCal) {
         List<MealPlanItem> matches = new ArrayList<>();
         for (MealPlanItem mp : mealPlans) {
@@ -396,11 +425,14 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             } catch (Exception ignored) {}
         }
 
-        // update RecyclerView adapter with matches
+        // apply saved order (if any) BEFORE setItems
+        applySavedOrder(dayCal, matches);
+
+        // set items on adapter
         adapter.setItems(matches);
     }
 
-    // ========== Add / Edit dialogs ==========
+    // ========== Add / Edit dialogs (giữ nguyên logic trước đó; không hiển thị thời gian) ==========
     private void showAddDialog() {
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_add_mealplan, null);
         final EditText etName = v.findViewById(R.id.etName);
@@ -408,11 +440,9 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         final TextView tvSelectedRecipes = v.findViewById(R.id.tvSelectedRecipes);
         final EditText etNotes = v.findViewById(R.id.etNotes);
 
-        // hold selected recipe ids & names
         final List<String> selectedRecipeIds = new ArrayList<>();
         final List<String> selectedRecipeNames = new ArrayList<>();
 
-        // open favorites multi-select when button clicked (use cache if available)
         btnSelectRecipes.setOnClickListener(view -> {
             if (!cachedFavorites.isEmpty()) {
                 showMultiSelectRecipesDialog(cachedFavorites, selectedRecipeIds, selectedRecipeNames, tvSelectedRecipes);
@@ -422,9 +452,12 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                         runOnUiThread(() -> Toast.makeText(MealPlanActivity.this, "Không có favorites để chọn", Toast.LENGTH_SHORT).show());
                         return;
                     }
-                    cachedFavorites.clear();
-                    cachedFavorites.addAll(favItems);
-                    showMultiSelectRecipesDialog(favItems, selectedRecipeIds, selectedRecipeNames, tvSelectedRecipes);
+                    runOnUiThread(() -> {
+                        cachedFavorites.clear();
+                        cachedFavorites.addAll(favItems);
+                        adapter.setIdToTitleMap(buildIdTitleMap());
+                        showMultiSelectRecipesDialog(favItems, selectedRecipeIds, selectedRecipeNames, tvSelectedRecipes);
+                    });
                 });
             }
         });
@@ -438,7 +471,6 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
                     if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return; }
 
-                    // override date: always use selectedCalendar (user picks date by calendar)
                     Calendar useLocal = (selectedCalendar != null) ? (Calendar) selectedCalendar.clone() : Calendar.getInstance();
                     useLocal.set(Calendar.HOUR_OF_DAY, 12);
                     useLocal.set(Calendar.MINUTE, 0);
@@ -488,7 +520,10 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
     @Override
     public void onEdit(MealPlanItem item) {
-        if (item == null) return;
+        // duy trì logic trước — hiển thị dialog edit, thêm nút Delete (giữ nguyên như code trước)
+        // để gọn, gọi lại phương thức cũ (bạn có code edit ở phiên bản trước để copy)
+        // Nhưng ở đây ta chỉ gọi lại showAddDialog-like với prefilled values — implement theo file cũ
+        // (để ngắn, mình giữ logic edit như bạn đã có; nếu cần, mình paste lại toàn bộ edit dialog)
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_add_mealplan, null);
         final EditText etName = v.findViewById(R.id.etName);
         final Button btnSelectRecipes = v.findViewById(R.id.btnSelectRecipes);
@@ -500,14 +535,10 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
         etName.setText(item.getName());
         etNotes.setText(item.getNotes());
+        if (item.getRecipeIds() != null) selectedRecipeIds.addAll(item.getRecipeIds());
 
-        if (item.getRecipeIds() != null) {
-            selectedRecipeIds.addAll(item.getRecipeIds());
-        }
-
-        // prefill names (try to map from cached favorites first)
+        // map names
         if (!cachedFavorites.isEmpty()) {
-            selectedRecipeNames.clear();
             for (String rid : selectedRecipeIds) {
                 for (FavoriteItem f : cachedFavorites) {
                     if (f.getId() != null && f.getId().equals(rid)) {
@@ -516,27 +547,24 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                     }
                 }
             }
-            if (tvSelectedRecipes != null)
-                tvSelectedRecipes.setText(formatSelectedNames(selectedRecipeNames));
+            tvSelectedRecipes.setText(formatSelectedNames(selectedRecipeNames));
         } else {
-            // fallback: fetch to map names
             fetchFavoritesForSelection((favItems) -> {
                 if (favItems == null) return;
-                // update cache
-                cachedFavorites.clear();
-                cachedFavorites.addAll(favItems);
-                selectedRecipeNames.clear();
-                for (String rid : selectedRecipeIds) {
-                    for (FavoriteItem f : favItems) {
-                        if (f.getId() != null && f.getId().equals(rid)) {
-                            selectedRecipeNames.add(f.getTitle());
-                            break;
+                runOnUiThread(() -> {
+                    cachedFavorites.clear();
+                    cachedFavorites.addAll(favItems);
+                    adapter.setIdToTitleMap(buildIdTitleMap());
+                    selectedRecipeNames.clear();
+                    for (String rid : selectedRecipeIds) {
+                        for (FavoriteItem f : favItems) {
+                            if (f.getId() != null && f.getId().equals(rid)) {
+                                selectedRecipeNames.add(f.getTitle());
+                                break;
+                            }
                         }
                     }
-                }
-                runOnUiThread(() -> {
-                    if (tvSelectedRecipes != null)
-                        tvSelectedRecipes.setText(formatSelectedNames(selectedRecipeNames));
+                    tvSelectedRecipes.setText(formatSelectedNames(selectedRecipeNames));
                 });
             });
         }
@@ -550,24 +578,24 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                         runOnUiThread(() -> Toast.makeText(MealPlanActivity.this, "Không có favorites để chọn", Toast.LENGTH_SHORT).show());
                         return;
                     }
-                    cachedFavorites.clear();
-                    cachedFavorites.addAll(favItems);
-                    showMultiSelectRecipesDialog(favItems, selectedRecipeIds, selectedRecipeNames, tvSelectedRecipes);
+                    runOnUiThread(() -> {
+                        cachedFavorites.clear();
+                        cachedFavorites.addAll(favItems);
+                        adapter.setIdToTitleMap(buildIdTitleMap());
+                        showMultiSelectRecipesDialog(favItems, selectedRecipeIds, selectedRecipeNames, tvSelectedRecipes);
+                    });
                 });
             }
         });
 
-        // Build dialog and add Neutral 'Delete' button (shows confirm -> calls delete API)
         new AlertDialog.Builder(this)
                 .setTitle("Edit meal plan")
                 .setView(v)
                 .setPositiveButton("Save", (d,w) -> {
                     String name = etName.getText().toString().trim();
                     String notes = etNotes.getText().toString().trim();
-
                     if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return; }
 
-                    // override date: always use calendar-selected date (ensure midday to avoid timezone shift)
                     Calendar useLocal = (selectedCalendar != null) ? (Calendar) selectedCalendar.clone() : Calendar.getInstance();
                     useLocal.set(Calendar.HOUR_OF_DAY, 12);
                     useLocal.set(Calendar.MINUTE, 0);
@@ -612,12 +640,10 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                     });
                 })
                 .setNeutralButton("Delete", (d, w) -> {
-                    // confirm before deleting
                     new AlertDialog.Builder(MealPlanActivity.this)
                             .setTitle("Confirm delete")
                             .setMessage("Bạn có chắc muốn xoá meal plan này?")
                             .setPositiveButton("Delete", (dd, ww) -> {
-                                // call delete API
                                 JsonObject body = new JsonObject();
                                 body.addProperty("mealPlanId", item.getId());
                                 RequestBody rb = RequestBody.create(body.toString(), JSON);
@@ -686,12 +712,9 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                 .show();
     }
 
-    // callback interface
-    private interface FavCallback {
-        void onResult(List<FavoriteItem> items);
-    }
+    // ========== Favorites fetch (giữ nguyên) ==========
+    private interface FavCallback { void onResult(List<FavoriteItem> items); }
 
-    // fetch favorites (robust) and always call callback on UI thread
     private void fetchFavoritesForSelection(FavCallback cb) {
         if (authToken == null || authToken.isEmpty()) {
             runOnUiThread(() -> {
@@ -718,11 +741,8 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             }
             @Override public void onResponse(Call call, Response response) throws IOException {
                 String respBody = null;
-                try {
-                    respBody = response.body() != null ? response.body().string() : null;
-                } catch (Exception ex) {
-                    Log.e(TAG, "Read body error: " + ex.getMessage(), ex);
-                }
+                try { respBody = response.body() != null ? response.body().string() : null; }
+                catch (Exception ex) { Log.e(TAG, "Read body error: " + ex.getMessage(), ex); }
 
                 Log.i(TAG, "Favorites response code=" + response.code() + " body=" + respBody);
 
@@ -745,7 +765,6 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                 try {
                     List<FavoriteItem> list = new ArrayList<>();
                     if (respBody != null) {
-                        // try several possible payload shapes
                         com.google.gson.JsonElement rootEl = JsonParser.parseString(respBody);
                         if (rootEl.isJsonObject()) {
                             JsonObject root = rootEl.getAsJsonObject();
@@ -814,6 +833,8 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                         cachedFavorites.clear();
                         cachedFavorites.addAll(items);
                         Log.i(TAG, "Cached favorites: " + items.size());
+                        adapter.setIdToTitleMap(buildIdTitleMap());
+                        adapter.setIdToImageMap(buildIdImageMap()); // ✅ thêm dòng này
                     } else {
                         Log.i(TAG, "No favorites cached (null).");
                     }
@@ -822,14 +843,14 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         });
     }
 
-    // show multi-select dialog helper
+
+    // helper multi-select
     private void showMultiSelectRecipesDialog(java.util.List<FavoriteItem> favItems,
                                               java.util.List<String> selectedRecipeIds,
                                               java.util.List<String> selectedRecipeNames,
                                               TextView tvSelectedRecipes) {
         if (favItems == null || selectedRecipeIds == null || selectedRecipeNames == null || tvSelectedRecipes == null) return;
 
-        // rebuild names from ids
         selectedRecipeNames.clear();
         for (String id : selectedRecipeIds) {
             for (FavoriteItem f : favItems) {
@@ -882,4 +903,176 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
             return names.size() + " items selected";
         }
     }
+
+    // id->title map
+    private Map<String,String> buildIdTitleMap() {
+        Map<String,String> m = new HashMap<>();
+        for (FavoriteItem f : cachedFavorites) {
+            if (f != null && f.getId() != null) {
+                m.put(f.getId(), f.getTitle() != null ? f.getTitle() : "");
+            }
+        }
+        return m;
+    }
+    private Map<String,String> buildIdImageMap() {
+        Map<String,String> m = new HashMap<>();
+        for (FavoriteItem f : cachedFavorites) {
+            if (f != null && f.getId() != null) {
+                m.put(f.getId(), f.getImage() != null ? f.getImage() : "");
+            }
+        }
+        return m;
+    }
+
+    // ===== LƯU & KHÔI PHỤC THỨ TỰ (SharedPreferences) =====
+    private void saveOrderForDate(Calendar dayCal, List<MealPlanItem> ordered) {
+        if (dayCal == null || ordered == null) return;
+        String key = "mealplan_order_" + String.format(Locale.US, "%1$tY%1$tm%1$td", dayCal);
+        ArrayList<String> ids = new ArrayList<>();
+        for (MealPlanItem m : ordered) if (m != null && m.getId() != null) ids.add(m.getId());
+        String json = new com.google.gson.Gson().toJson(ids);
+        getSharedPreferences("mealplan_prefs", MODE_PRIVATE)
+                .edit()
+                .putString(key, json)
+                .apply();
+    }
+
+    private void applySavedOrder(Calendar dayCal, List<MealPlanItem> list) {
+        if (dayCal == null || list == null) return;
+        String key = "mealplan_order_" + String.format(Locale.US, "%1$tY%1$tm%1$td", dayCal);
+        String json = getSharedPreferences("mealplan_prefs", MODE_PRIVATE)
+                .getString(key, null);
+        if (json == null) return;
+
+        java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<String>>(){}.getType();
+        List<String> idOrder = new com.google.gson.Gson().fromJson(json, type);
+        if (idOrder == null || idOrder.isEmpty()) return;
+
+        java.util.Map<String, MealPlanItem> map = new java.util.HashMap<>();
+        for (MealPlanItem m : list) map.put(m.getId(), m);
+
+        List<MealPlanItem> reordered = new ArrayList<>();
+        for (String id : idOrder) {
+            MealPlanItem m = map.remove(id);
+            if (m != null) reordered.add(m);
+        }
+        // add remaining (new) items to end
+        reordered.addAll(map.values());
+
+        list.clear();
+        list.addAll(reordered);
+    }
+    private int getDaysInMonth(int month0, int year) {
+        Calendar tmp = Calendar.getInstance();
+        tmp.set(Calendar.YEAR, year);
+        tmp.set(Calendar.MONTH, month0);
+        // đảm bảo đặt ngày vào 1 tránh edge-case khi ngày hiện tại > max của tháng mới
+        tmp.set(Calendar.DAY_OF_MONTH, 1);
+        return tmp.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+    private void showDateWheelBottomSheet() {
+        // Reuse same name so bạn không phải đổi chỗ gọi
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_date_wheel, null);
+        final NumberPicker npDay = dialogView.findViewById(R.id.npDay);
+        final NumberPicker npMonth = dialogView.findViewById(R.id.npMonth);
+        final NumberPicker npYear = dialogView.findViewById(R.id.npYear);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancelDate);
+        Button btnOk = dialogView.findViewById(R.id.btnOkDate);
+
+        // months display
+        final String[] months = new String[12];
+        for (int i = 0; i < 12; i++) months[i] = "TH" + (i + 1);
+
+        int curYear = calendar.get(Calendar.YEAR);
+        int minYear = Math.max(1900, curYear - 50);
+        int maxYear = curYear + 50;
+
+        int initDay = calendar.get(Calendar.DAY_OF_MONTH);
+        int initMonth = calendar.get(Calendar.MONTH); // 0-based
+        int initYear = calendar.get(Calendar.YEAR);
+
+        // Year
+        npYear.setMinValue(minYear);
+        npYear.setMaxValue(maxYear);
+        npYear.setValue(initYear);
+        npYear.setWrapSelectorWheel(false);
+
+        // Month
+        npMonth.setMinValue(0);
+        npMonth.setMaxValue(months.length - 1);
+        npMonth.setDisplayedValues(months);
+        npMonth.setValue(initMonth);
+        npMonth.setWrapSelectorWheel(true);
+
+        // Day
+        int maxDay = getDaysInMonth(initMonth, initYear);
+        npDay.setMinValue(1);
+        npDay.setMaxValue(maxDay);
+        npDay.setValue(Math.min(initDay, maxDay));
+        npDay.setWrapSelectorWheel(true);
+
+        NumberPicker.OnValueChangeListener onMonthYearChanged = (picker, oldVal, newVal) -> {
+            int selectedMonth = npMonth.getValue();
+            int selectedYear = npYear.getValue();
+            int days = getDaysInMonth(selectedMonth, selectedYear);
+            int cur = npDay.getValue();
+            // cập nhật max; nếu cur > days thì set về days
+            npDay.setMaxValue(days);
+            if (cur > days) npDay.setValue(days);
+        };
+        npMonth.setOnValueChangedListener(onMonthYearChanged);
+        npYear.setOnValueChangedListener(onMonthYearChanged);
+
+        // Build AlertDialog (centered small dialog with dim)
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setView(dialogView);
+
+        final androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCancelable(true);
+
+        // buttons
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnOk.setOnClickListener(v -> {
+            int chosenDay = npDay.getValue();
+            int chosenMonth = npMonth.getValue(); // 0-based
+            int chosenYear = npYear.getValue();
+
+            if (selectedCalendar == null) selectedCalendar = Calendar.getInstance();
+            selectedCalendar.set(Calendar.YEAR, chosenYear);
+            selectedCalendar.set(Calendar.MONTH, chosenMonth);
+            int daysInChosen = getDaysInMonth(chosenMonth, chosenYear);
+            if (chosenDay > daysInChosen) chosenDay = daysInChosen;
+            selectedCalendar.set(Calendar.DAY_OF_MONTH, chosenDay);
+            selectedCalendar.set(Calendar.HOUR_OF_DAY, 12);
+            selectedCalendar.set(Calendar.MINUTE, 0);
+            selectedCalendar.set(Calendar.SECOND, 0);
+            selectedCalendar.set(Calendar.MILLISECOND, 0);
+
+            calendar.set(Calendar.YEAR, chosenYear);
+            calendar.set(Calendar.MONTH, chosenMonth);
+
+            buildCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
+            SimpleDateFormat display = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+            if (currentDateInfo != null) currentDateInfo.setText("Ngày: " + display.format(selectedCalendar.getTime()));
+
+            showMealsForDate(selectedCalendar);
+            dialog.dismiss();
+        });
+
+        // Show then adjust window size & dim
+        dialog.show();
+
+        // Make dialog width smaller than full width and keep height wrap_content
+        int widthPx = (int) (getResources().getDisplayMetrics().widthPixels * 0.86); // khoảng 86% width; thay đổi nếu muốn
+        dialog.getWindow().setLayout(widthPx, FrameLayout.LayoutParams.WRAP_CONTENT);
+
+        // Bo góc và nền của dialog (nếu dialog_date_wheel có background tròn thì ok)
+        // Thêm dim amount (mặc định AlertDialog đã dim; nếu muốn khác, chỉnh như sau)
+        android.view.WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+        lp.dimAmount = 0.6f; // làm mờ nền xung quanh
+        dialog.getWindow().setAttributes(lp);
+    }
+
+
 }

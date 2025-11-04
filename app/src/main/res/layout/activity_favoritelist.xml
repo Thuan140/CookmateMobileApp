@@ -12,6 +12,8 @@
 
     <!-- SEARCH BAR -->
 
+
+
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
@@ -45,8 +47,7 @@
         android:layout_marginTop="36dp"
         android:src="@drawable/ic_heart_filled"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-         />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/searchCard"
@@ -103,6 +104,16 @@
         app:layout_constraintStart_toEndOf="@id/textView6"
         app:layout_constraintTop_toTopOf="@id/textView6"
         app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/sort_toggle"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginTop="135dp"
+        android:src="@drawable/outline_arrow_downward_24"
+        app:layout_constraintStart_toEndOf="@+id/textView7"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@android:color/black" />
 
     <TextView
         android:id="@+id/textView6"

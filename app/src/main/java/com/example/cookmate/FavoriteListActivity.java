@@ -68,7 +68,8 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
     private LinearLayout paginationLayout;
     private EditText searchInput;
     private TextView sortTextView; // textView7 in your xml
-
+    private ImageView sortToggle;
+    private boolean sortAscending = true; // true = tăng (asc), false = giảm (desc)
     // current sort: "name", "time", "servings"
     private String currentSort = "name";
 
@@ -99,6 +100,21 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
             });
             // show initial label
             updateSortLabel();
+            // find sort toggle image and set click to flip ascending/descending
+            sortToggle = findViewById(R.id.sort_toggle);
+            if (sortToggle != null) {
+                // cập nhật hình ban đầu theo sortAscending
+                sortToggle.setRotation(sortAscending ? 0f : 180f);
+
+                sortToggle.setOnClickListener(v -> {
+                    // đổi chiều sắp xếp (tăng/giam)
+                    sortAscending = !sortAscending;
+                    // rotate icon để biểu thị hướng
+                    sortToggle.animate().rotation(sortAscending ? 0f : 180f).setDuration(180).start();
+                    // apply lại bộ lọc & sắp xếp
+                    applyFiltersAndShow();
+                });
+            }
         }
 
         sessionManager = new SessionManager(this);
@@ -144,7 +160,14 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
             case "servings": sortTextView.setText("Servings"); break;
             default: sortTextView.setText("Name"); break;
         }
+
+        // cập nhật biểu tượng hướng
+        if (sortToggle != null) {
+            // rotation 0 = tăng (mũi tên hướng lên), 180 = giảm (hướng xuống) - tuỳ icon của bạn
+            sortToggle.setRotation(sortAscending ? 0f : 180f);
+        }
     }
+
 
     // -----------------------------------------
     private void fetchFavorites() {
@@ -228,24 +251,35 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
         }
 
         // 2) sort
+        Comparator<FavoriteItem> comparator;
         if ("time".equals(currentSort)) {
-            Collections.sort(filteredList, (a, b) -> {
+            comparator = (a, b) -> {
                 Integer ra = a.getReadyInMinutes() != null ? a.getReadyInMinutes() : Integer.MAX_VALUE;
                 Integer rb = b.getReadyInMinutes() != null ? b.getReadyInMinutes() : Integer.MAX_VALUE;
-                return Integer.compare(ra, rb); // smaller time first
-            });
+                return Integer.compare(ra, rb); // nhỏ trước (asc)
+            };
         } else if ("servings".equals(currentSort)) {
-            Collections.sort(filteredList, (a, b) -> {
+            comparator = (a, b) -> {
                 Integer sa = a.getServings() != null ? a.getServings() : Integer.MIN_VALUE;
                 Integer sb = b.getServings() != null ? b.getServings() : Integer.MIN_VALUE;
-                return Integer.compare(sb, sa); // larger servings first
-            });
+                return Integer.compare(sb, sa); // lớn trước (desc) by default in your previous logic
+            };
+            // note: we'll invert if sortAscending == false
         } else { // name
-            Collections.sort(filteredList, (a, b) -> {
+            comparator = (a, b) -> {
                 String na = a.getTitle() != null ? a.getTitle() : "";
                 String nb = b.getTitle() != null ? b.getTitle() : "";
                 return na.compareToIgnoreCase(nb);
-            });
+            };
+        }
+
+        // apply comparator and respect sortAscending
+        if (comparator != null) {
+            if (sortAscending) {
+                Collections.sort(filteredList, comparator);
+            } else {
+                Collections.sort(filteredList, comparator.reversed());
+            }
         }
 
         // 3) pagination

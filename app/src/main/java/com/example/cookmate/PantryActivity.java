@@ -559,7 +559,6 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
 
         // --- Category (Button thay Spinner) ---
         final Button categoryButton = new Button(this);
-
         categoryButton.setAllCaps(false);
         categoryButton.setTextSize(16f);
         categoryButton.setPadding(16, 16, 16, 16);
@@ -577,16 +576,21 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
             selectCategoryLauncher.launch(it);
         });
 
-        // --- rest fields ---
+        // --- Quantity ---
         final EditText qtyInput = new EditText(this);
         qtyInput.setHint("Quantity");
         qtyInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         layout.addView(qtyInput);
 
-        final EditText unitInput = new EditText(this);
-        unitInput.setHint("Unit: g, kg , ml, l, piece, cup, tbsp, tsp");
-        layout.addView(unitInput);
+        // --- Unit (Spinner) ---
+        final Spinner unitSpinner = new Spinner(this);
+        String[] unitOptions = new String[]{"g","kg","ml","l","piece","cup","tbsp","tsp"};
+        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, unitOptions);
+        unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        unitSpinner.setAdapter(unitAdapter);
+        layout.addView(unitSpinner);
 
+        // --- Expiry (kept as before) ---
         final EditText expiryInput = new EditText(this);
         expiryInput.setFocusable(false);
         expiryInput.setClickable(true);
@@ -624,23 +628,19 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                     String categoryId = pendingSelectedCategoryId != null ? pendingSelectedCategoryId : "";
                     String qty = qtyInput.getText().toString().trim();
                     if (qty.isEmpty()) qty = "0";
-                    String unit = unitInput.getText().toString().trim();
+                    String unit = (String) unitSpinner.getSelectedItem(); // <- lấy từ spinner
                     String notes = notesInput.getText().toString().trim();
 
                     String expiry = expiryInput.getText().toString().trim();
                     if (!expiry.isEmpty()) {
                         try {
-                            // expiryStr is "yyyy-MM-dd"
-                            String expiryStr = expiry;
-                            String[] parts = expiryStr.split("-");
+                            String[] parts = expiry.split("-");
                             int y = Integer.parseInt(parts[0]);
                             int m = Integer.parseInt(parts[1]); // 1..12
                             int d = Integer.parseInt(parts[2]);
 
-                            // Create a UTC calendar set to that date at 00:00:00.000 UTC
                             Calendar utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                             utcCal.clear();
-                            // Note: month in Calendar is 0-based
                             utcCal.set(y, m - 1, d, 0, 0, 0);
                             utcCal.set(Calendar.MILLISECOND, 0);
 
@@ -675,7 +675,6 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                                 loadIngredients();
                             });
                         }
-
                         @Override public void onError(String errorMessage) {
                             runOnUiThread(() -> Toast.makeText(PantryActivity.this, "Create error: " + errorMessage, Toast.LENGTH_LONG).show());
                         }
@@ -758,11 +757,20 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
         qtyInput.setText(String.valueOf(ing.getQuantity()));
         layout.addView(qtyInput);
 
-        // --- Unit ---
-        final EditText unitInput = new EditText(this);
-        unitInput.setHint("Unit: g, kg , ml, l, piece, cup, tbsp, tsp");
-        unitInput.setText(ing.getUnit());
-        layout.addView(unitInput);
+        // --- Unit (Spinner instead of EditText) ---
+        final Spinner unitSpinner = new Spinner(this);
+        String[] unitOptions = new String[]{"g","kg","ml","l","piece","cup","tbsp","tsp"};
+        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, unitOptions);
+        unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        unitSpinner.setAdapter(unitAdapter);
+        // set current selection if matches
+        String currentUnit = ing.getUnit() != null ? ing.getUnit() : "";
+        int selPos = 0;
+        for (int i=0;i<unitOptions.length;i++) {
+            if (unitOptions[i].equalsIgnoreCase(currentUnit)) { selPos = i; break; }
+        }
+        unitSpinner.setSelection(selPos);
+        layout.addView(unitSpinner);
 
         // --- Expiry Date ---
         final EditText expiryInput = new EditText(this);
@@ -775,14 +783,13 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
         String existingExpiry = ing.getExpiryDate();
         if (existingExpiry != null && !existingExpiry.trim().isEmpty()) {
             try {
-                // Parse ISO (UTC) then convert to local calendar to display correct local date
                 SimpleDateFormat isoSdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
                 isoSdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 Date parsed = isoSdf.parse(existingExpiry);
                 if (parsed != null) {
                     Calendar localCal = Calendar.getInstance();
                     localCal.setTime(parsed);
-                    expiryCal.setTime(localCal.getTime()); // set expiryCal so DatePicker starts there
+                    expiryCal.setTime(localCal.getTime());
                     SimpleDateFormat displaySdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                     expiryInput.setText(displaySdf.format(localCal.getTime()));
                 }
@@ -819,20 +826,16 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
         pickBtn.setImageResource(android.R.drawable.ic_menu_gallery);
         layout.addView(pickBtn);
 
-        pendingImageData = null; // byte[] ảnh
-        pendingImageName = null;  // tên file (không dùng, có thể null)
+        pendingImageData = null;
+        pendingImageName = null;
 
-        // Nếu có ảnh hiện tại trên server, tải về byte[]
         if (ing.getImage() != null && !ing.getImage().isEmpty()) {
             loadImageFromServer(ing.getImage(), data -> {
                 if (data != null) pendingImageData = data;
             });
         }
 
-        pickBtn.setOnClickListener(v -> {
-            // launch GetContent
-            pickImageLauncher.launch("image/*");
-        });
+        pickBtn.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
 
         // --- Dialog builder ---
         new AlertDialog.Builder(this)
@@ -844,14 +847,13 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
 
                     String qty = qtyInput.getText().toString().trim();
                     if (qty.isEmpty()) qty = "0";
-                    String unit = unitInput.getText().toString().trim();
+                    String unit = (String) unitSpinner.getSelectedItem(); // <-- lấy unit từ spinner
                     String notes = notesInput.getText().toString().trim();
 
                     String expiry = expiryInput.getText().toString().trim();
                     if (!expiry.isEmpty()) {
                         try {
-                            String expiryStr = expiry;
-                            String[] parts = expiryStr.split("-");
+                            String[] parts = expiry.split("-");
                             int y = Integer.parseInt(parts[0]);
                             int m = Integer.parseInt(parts[1]);
                             int day = Integer.parseInt(parts[2]);
@@ -899,7 +901,8 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                             }
                         });
                     } else {
-                        Toast.makeText(this, "No image selected!", Toast.LENGTH_SHORT).show();
+                        // nếu muốn cho phép update không hình, bạn nên gọi api updateWithoutImage.
+                        runOnUiThread(() -> Toast.makeText(PantryActivity.this, "No image selected!", Toast.LENGTH_SHORT).show());
                     }
 
                     // reset tạm
@@ -920,6 +923,7 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                 })
                 .show();
     }
+
 
     private long daysUntilExpiry(String expiryIso) {
         if (expiryIso == null || expiryIso.trim().isEmpty()) return Long.MAX_VALUE;
