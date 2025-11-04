@@ -36,12 +36,13 @@
         <activity android:name=".PantryActivity" />
         <activity android:name=".MealPlanActivity" />
         <activity android:name=".HomeActivity" />
-        <activity android:name=".RecipeActivity" />
+
         <activity android:name=".SelectCategoryActivity" />
         <activity android:name=".AddIngredientCategoryActivity" />
         <activity android:name=".UpdateIngredientCategoryActivity"
             android:label="Update Category" />
         <activity android:name=".ShoppingListActivity" />
+        <activity android:name=".RecipeSearchResultsActivity" />
 
         <activity
             android:name=".LoginEmailActivity"
@@ -49,5 +50,9 @@
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".OtpRecoverActivity"
+            android:exported="false" />
+        <activity android:name=".MealDetailActivity" />
     </application>
 </manifest>

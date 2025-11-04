@@ -235,6 +235,7 @@
             app:tint="@android:color/darker_gray" />
 
     </LinearLayout>
+    <!-- Thanh điều hướng cố định ở cuối màn hình -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="match_parent"
@@ -253,6 +254,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

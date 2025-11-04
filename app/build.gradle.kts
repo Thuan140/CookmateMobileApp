@@ -42,6 +42,8 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     // import thư viện gson để chuyển đổi dữ liệu từ Java Object → JSON và ngược lại
     implementation("com.google.code.gson:gson:2.11.0")
+    // import thư viện MPAndroidChart để vẽ biểu đồ PieChart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)

@@ -10,7 +10,7 @@
         android:title="Pantry" />
 
     <item
-        android:id="@+id/navigation_recipe"
+        android:id="@+id/navigation_recipe_search_results"
         android:icon="@drawable/ic_recipe"
         android:title="Recipe" />
 

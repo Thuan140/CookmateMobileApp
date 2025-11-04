@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -31,6 +32,8 @@ public class AuthActivity extends AppCompatActivity {
         btnGoogleLogin = findViewById(R.id.btn_google_login);
         btnEmailLogin = findViewById(R.id.btn_email_login);
 
+        TextView tvRecover = findViewById(R.id.tv_recover);
+
         // 🔹 1. Cấu hình Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id)) // lấy token xác thực từ Google
@@ -51,7 +54,6 @@ public class AuthActivity extends AppCompatActivity {
             Intent signInIntent = mGoogleSignInClient.getSignInIntent();
             startActivityForResult(signInIntent, RC_SIGN_IN);
         });
-        //
 //        btnGoogleLogin.setOnClickListener(v -> {
 //            // Mock dữ liệu Google trả về
 //            String googleUserId = "123456789";
@@ -86,7 +88,11 @@ public class AuthActivity extends AppCompatActivity {
 //                }
 //            });
 //        });
-        //
+
+        tvRecover.setOnClickListener(v -> {
+            Intent intent = new Intent(AuthActivity.this, OtpRecoverActivity.class);
+            startActivity(intent);
+        });
     }
 
     // 🔹 2. Nhận kết quả đăng nhập Google

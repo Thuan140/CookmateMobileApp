@@ -190,8 +190,8 @@ public class HomeActivity extends AppCompatActivity {
             return;
         }
 
-        RecipeApiService apiService = new RecipeApiService(this);
-        apiService.getTodayRecipes(token, new RecipeApiService.RecipeCallback() {
+        RecipeTodayApiService apiService = new RecipeTodayApiService(this);
+        apiService.getTodayRecipes(token, new RecipeTodayApiService.RecipeCallback() {
             @Override
             public void onSuccess(List<Recipe> recipes) {
                 adapter = new RecipePagerAdapter(HomeActivity.this, recipes);

@@ -178,17 +178,26 @@
             app:layout_constraintStart_toStartOf="@id/guidelineStart"
             android:layout_marginTop="20dp" />
 
-        <!-- Placeholder Pie Chart -->
-        <ImageView
-            android:id="@+id/ivNutritionChart"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_launcher_background"
-            android:scaleType="fitCenter"
+<!--         Placeholder Pie Chart-->
+<!--        <ImageView-->
+<!--            android:id="@+id/ivNutritionChart"-->
+<!--            android:layout_width="120dp"-->
+<!--            android:layout_height="120dp"-->
+<!--            android:src="@drawable/ic_launcher_background"-->
+<!--            android:scaleType="fitCenter"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/tvNutrition"-->
+<!--            app:layout_constraintStart_toStartOf="@id/guidelineStart"-->
+<!--            android:layout_marginTop="12dp"-->
+<!--            android:contentDescription="Nutrition Chart" />-->
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieNutritionChart"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@id/tvNutrition"
             app:layout_constraintStart_toStartOf="@id/guidelineStart"
-            android:layout_marginTop="12dp"
-            android:contentDescription="Nutrition Chart" />
+            app:layout_constraintEnd_toEndOf="@id/guidelineEnd" />
 
         <!-- Nutrition details -->
         <TextView
@@ -199,7 +208,7 @@
             android:textSize="15sp"
             android:textColor="@android:color/black"
             android:lineSpacingExtra="4dp"
-            app:layout_constraintTop_toBottomOf="@id/ivNutritionChart"
+            app:layout_constraintTop_toBottomOf="@+id/pieNutritionChart"
             app:layout_constraintStart_toStartOf="@id/guidelineStart"
             app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
             android:layout_marginTop="6dp" />

@@ -39,8 +39,8 @@ public class NavHelper {
                 i = new Intent(activity, HomeActivity.class);
             } else if (id == R.id.navigation_pantry) {
                 i = new Intent(activity, PantryActivity.class);
-            } else if (id == R.id.navigation_recipe) {
-                i = new Intent(activity, RecipeActivity.class);
+            } else if (id == R.id.navigation_recipe_search_results) {
+                i = new Intent(activity, RecipeSearchResultsActivity.class);
             } else if (id == R.id.navigation_mealplan) {
                 i = new Intent(activity, MealPlanActivity.class);
             } else if (id == R.id.navigation_profile) {

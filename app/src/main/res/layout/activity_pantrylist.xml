@@ -300,7 +300,7 @@
 
     </LinearLayout>
 
-    <!-- Bottom nav -->
+    <!-- Thanh điều hướng cố định ở cuối màn hình -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="match_parent"

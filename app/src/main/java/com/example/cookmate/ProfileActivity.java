@@ -39,12 +39,13 @@ public class ProfileActivity extends AppCompatActivity {
 
     private ShapeableImageView profileImage;
     private TextView userName, userEmail, dietValue;
-    private MaterialButton logoutButton;
+    private MaterialButton logoutButton, deleteAccountButton;
     private Uri selectedImageUri = null;
 
     private SessionManager session;
     private User user;
     private ProfileApiService profileApiService;
+    private ProfileDeleteApiService deleteApiService;
 
     private static final int REQUEST_STORAGE_PERMISSION = 101;
 
@@ -60,9 +61,12 @@ public class ProfileActivity extends AppCompatActivity {
         userEmail = findViewById(R.id.user_email);
         dietValue = findViewById(R.id.diet_value);
         logoutButton = findViewById(R.id.log_out_button);
+        logoutButton = findViewById(R.id.log_out_button);
+        deleteAccountButton = findViewById(R.id.delete_account_button);
 
         session = new SessionManager(this);
         profileApiService = new ProfileApiService(this);
+        deleteApiService = new ProfileDeleteApiService(this);
         user = session.getUser();
 
         if (user != null) {
@@ -175,7 +179,66 @@ public class ProfileActivity extends AppCompatActivity {
                     .show();
         });
 
+        // Xử lý nút Delete Account
+        deleteAccountButton.setOnClickListener(v -> showDeleteConfirmation());
+
+        // Xử lý nút Recover Account
+        MaterialButton recoverButton = findViewById(R.id.recover_account_button);
+
+        recoverButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, OtpRecoverActivity.class);
+            startActivity(intent);
+        });
+
     }
+
+    private void showDeleteConfirmation() {
+        new AlertDialog.Builder(ProfileActivity.this)
+                .setTitle("Delete Account")
+                .setMessage("Are you sure you want to permanently delete your account?")
+                .setPositiveButton("Yes", (dialog, which) -> performAccountDeletion())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void performAccountDeletion() {
+        deleteApiService.deleteAccount(response -> {
+            try {
+                if (response.has("message") &&
+                        response.getString("message").equals("Account deleted successfully")) {
+
+                    Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_LONG).show();
+
+                    // Xóa session và quay lại AuthActivity
+                    session.clear();
+                    Intent intent = new Intent(ProfileActivity.this, AuthActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finishAffinity();
+
+                } else {
+                    Toast.makeText(this, "Unexpected response", Toast.LENGTH_SHORT).show();
+                }
+            } catch (JSONException e) {
+                Toast.makeText(this, "Parse error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+        }, error -> {
+            if (error.networkResponse != null) {
+                int statusCode = error.networkResponse.statusCode;
+                if (statusCode == 401) {
+                    Toast.makeText(this, "Unauthorized - Invalid or missing authentication token", Toast.LENGTH_LONG).show();
+                } else if (statusCode == 500) {
+                    Toast.makeText(this, "Internal server error", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "HTTP Error: " + statusCode, Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(this, "Network error. Please check your connection.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 
     // Mở thư viện ảnh
     private void openGallery() {
