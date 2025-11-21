@@ -888,7 +888,7 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                     String token = new SessionManager(PantryActivity.this).getToken();
                     IngredientApiService svc = new IngredientApiService(PantryActivity.this);
 
-                    if (pendingImageData != null && pendingImageData.length > 0) {
+
                         svc.updateIngredientWithImage(token, fields, pendingImageData, new IngredientApiService.SimpleCallback() {
                             @Override public void onSuccess(JSONObject response) {
                                 runOnUiThread(() -> {
@@ -900,10 +900,7 @@ public class PantryActivity extends AppCompatActivity implements PantryAdapter.A
                                 runOnUiThread(() -> Toast.makeText(PantryActivity.this, "Update error: " + errorMessage, Toast.LENGTH_LONG).show());
                             }
                         });
-                    } else {
-                        // nếu muốn cho phép update không hình, bạn nên gọi api updateWithoutImage.
-                        runOnUiThread(() -> Toast.makeText(PantryActivity.this, "No image selected!", Toast.LENGTH_SHORT).show());
-                    }
+
 
                     // reset tạm
                     pendingImageData = null;
