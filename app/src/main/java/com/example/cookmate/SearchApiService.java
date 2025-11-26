@@ -154,7 +154,7 @@ public class SearchApiService {
         this.session = new SessionManager(context);
     }
 
-    public void searchRecipes(String query, Integer limit, String cuisine, String diet, Integer maxReadyTime, SearchCallback callback) {
+    public void searchRecipes(Integer limit, String query, String cuisine, String diet, Integer maxReadyTime, SearchCallback callback) {
         try {
             StringBuilder urlBuilder = new StringBuilder(BASE_URL + "?");
 

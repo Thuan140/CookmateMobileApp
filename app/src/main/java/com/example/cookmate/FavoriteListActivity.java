@@ -142,6 +142,7 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
 
         // initial load
         fetchFavorites();
+
     }
 
     private void toggleSort() {
@@ -223,6 +224,49 @@ public class FavoriteListActivity extends AppCompatActivity implements FavoriteA
             runOnUiThread(() -> {
                 currentPage = 1;
                 applyFiltersAndShow();
+//                String scrollId = getIntent().getStringExtra("scrollToId");
+//
+//                if (scrollId != null) {
+//
+//                    recyclerView.post(() -> {
+//
+//                        for (int i = 0; i < allItems.size(); i++) {
+//
+//                            if (allItems.get(i).getId().equals(scrollId)) {
+//                                recyclerView.scrollToPosition(i);
+//                                break;
+//                            }
+//                        }
+//                    });
+//                }
+                String scrollId = getIntent().getStringExtra("scrollToId");
+
+                if (scrollId != null) {
+
+                    recyclerView.post(() -> {
+
+                        for (int i = 0; i < filteredList.size(); i++) {
+
+                            if (filteredList.get(i).getId().equals(scrollId)) {
+
+                                // Tìm page chứa item
+                                int page = (i / ITEMS_PER_PAGE) + 1;
+
+                                // Chuyển sang đúng trang
+                                showPage(page);
+
+                                // Vị trí trong adapter sau khi phân trang
+                                int indexInPage = i % ITEMS_PER_PAGE;
+
+                                recyclerView.post(() ->
+                                        recyclerView.scrollToPosition(indexInPage)
+                                );
+
+                                break;
+                            }
+                        }
+                    });
+                }
                 if (allItems.isEmpty()) {
                     Toast.makeText(FavoriteListActivity.this, "Không có mục yêu thích", Toast.LENGTH_SHORT).show();
                 }

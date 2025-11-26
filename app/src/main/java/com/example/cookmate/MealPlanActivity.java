@@ -29,10 +29,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -81,6 +83,8 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
     // Drag state
     private ItemTouchHelper itemTouchHelper;
+    private String openMealPlanId;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -101,6 +105,7 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
 
         recyclerView = findViewById(R.id.mealPlanRecyclerView);
         backBtn = findViewById(R.id.back_button);
+        openMealPlanId = getIntent().getStringExtra("mealPlanId");
 
         ImageView btnAdd = findViewById(R.id.btnAddMealPlan);
         if (btnAdd != null) {
@@ -255,6 +260,55 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
                 buildCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
                 if (selectedCalendar == null) selectedCalendar = Calendar.getInstance();
                 showMealsForDate(selectedCalendar);
+                if (openMealPlanId != null && !mealPlans.isEmpty()) {
+
+                    MealPlanItem target = null;
+
+                    for (MealPlanItem mp : mealPlans) {
+                        if (mp.getId().equals(openMealPlanId)) {
+                            target = mp;
+                            break;
+                        }
+                    }
+
+                    if (target != null && target.getDate() != null) {
+
+                        try {
+
+                            // Chuyển ngày từ ISO sang Calendar
+                            SimpleDateFormat parseIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+                            parseIso.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+                            Date parsed = parseIso.parse(target.getDate());
+
+                            Calendar c = Calendar.getInstance();
+                            c.setTime(parsed);
+
+                            selectedCalendar = c;
+
+                            // Rebuild calendar UI
+                            buildCalendar(c.get(Calendar.YEAR), c.get(Calendar.MONTH));
+
+                            // Load đúng danh sách theo ngày
+                            showMealsForDate(c);
+
+                            // Scroll đúng item trong adapter
+                            recyclerView.post(() -> {
+
+                                List<MealPlanItem> items = adapter.getItems();
+
+                                for (int i = 0; i < items.size(); i++) {
+                                    if (items.get(i).getId().equals(openMealPlanId)) {
+                                        recyclerView.scrollToPosition(i);
+                                        break;
+                                    }
+                                }
+                            });
+
+                        } catch (Exception ignored) {}
+                    }
+                }
+
             });
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -1073,6 +1127,5 @@ public class MealPlanActivity extends AppCompatActivity implements MealPlanAdapt
         lp.dimAmount = 0.6f; // làm mờ nền xung quanh
         dialog.getWindow().setAttributes(lp);
     }
-
 
 }

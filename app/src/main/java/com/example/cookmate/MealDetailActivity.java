@@ -1,88 +1,12 @@
-//package com.example.cookmate;
-//
-//import android.os.Bundle;
-//import android.widget.ImageView;
-//import android.widget.TextView;
-//
-//import androidx.appcompat.app.AppCompatActivity;
-//
-//import com.bumptech.glide.Glide;
-//
-//import org.json.JSONArray;
-//import org.json.JSONObject;
-//
-//public class MealDetailActivity extends AppCompatActivity {
-//
-//    private ImageView ivFood;
-//    private TextView tvTitle, tvIngredientList, tvInstructionContent, tvNutritionDetail;
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_mealdetail);
-//
-//        ivFood = findViewById(R.id.ivFood);
-//        tvTitle = findViewById(R.id.tvTitle);
-//        tvIngredientList = findViewById(R.id.tvIngredientList);
-//        tvInstructionContent = findViewById(R.id.tvInstructionContent);
-//        tvNutritionDetail = findViewById(R.id.tvNutritionDetail);
-//
-//        try {
-//            String jsonStr = getIntent().getStringExtra("recipeData");
-//            if (jsonStr != null) {
-//                JSONObject recipe = new JSONObject(jsonStr);
-//
-//                tvTitle.setText(recipe.optString("title", "No Title"));
-//                Glide.with(this).load(recipe.optString("image", "")).into(ivFood);
-//
-//                // Parse ingredients
-//                StringBuilder ingredients = new StringBuilder();
-//                JSONArray ingArr = recipe.optJSONArray("extendedIngredients");
-//                if (ingArr != null) {
-//                    for (int i = 0; i < ingArr.length(); i++) {
-//                        JSONObject ing = ingArr.getJSONObject(i);
-//                        ingredients.append("• ")
-//                                .append(ing.optString("original"))
-//                                .append("\n");
-//                    }
-//                }
-//                tvIngredientList.setText(ingredients.toString().trim());
-//
-//                // Parse instructions (nếu có)
-//                String instructions = recipe.optString("instructions", "No instructions provided.");
-//                tvInstructionContent.setText(instructions);
-//
-//                // Nutrition info
-//                JSONObject nutrition = recipe.optJSONObject("nutrition");
-//                if (nutrition != null) {
-//                    JSONArray nutrients = nutrition.optJSONArray("nutrients");
-//                    if (nutrients != null) {
-//                        StringBuilder sb = new StringBuilder();
-//                        for (int i = 0; i < nutrients.length(); i++) {
-//                            JSONObject nut = nutrients.getJSONObject(i);
-//                            sb.append(nut.optString("name"))
-//                                    .append(": ")
-//                                    .append(nut.optDouble("amount"))
-//                                    .append(" ")
-//                                    .append(nut.optString("unit"))
-//                                    .append("\n");
-//                        }
-//                        tvNutritionDetail.setText(sb.toString().trim());
-//                    }
-//                }
-//
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//}
 package com.example.cookmate;
 
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -100,29 +24,60 @@ import java.util.List;
 
 public class MealDetailActivity extends AppCompatActivity {
 
-    private ImageView ivFood;
+    private ImageView ivFood, ivBack, ivFavorite;
     private TextView tvTitle, tvIngredientList, tvInstructionContent, tvNutritionDetail;
     private PieChart pieChart;
+
+    private FavoriteApiService favoriteService;
+    private SessionManager sessionManager;
+    private String token;
+
+    private String recipeId;
+    private boolean isFavorite = false;   // flag trạng thái
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mealdetail);
 
+        // Init session
+        sessionManager = new SessionManager(this);
+        token = sessionManager.getToken();
+
+        // Init views
         ivFood = findViewById(R.id.ivFood);
         tvTitle = findViewById(R.id.tvTitle);
         tvIngredientList = findViewById(R.id.tvIngredientList);
         tvInstructionContent = findViewById(R.id.tvInstructionContent);
         tvNutritionDetail = findViewById(R.id.tvNutritionDetail);
         pieChart = findViewById(R.id.pieNutritionChart);
+        ivBack = findViewById(R.id.ivBack);
+        ivFavorite = findViewById(R.id.ivFavorite);
 
+        favoriteService = new FavoriteApiService(this);
+
+        loadRecipeData();
+        checkFavoriteStatus();   // 🔥 kiểm tra GET Favorites
+
+        ivFavorite.setOnClickListener(v -> {
+            if (!isFavorite) {
+                addFavorite();
+            }
+        });
+
+        ivBack.setOnClickListener(v -> finish());
+    }
+
+    // ====================== LOAD DATA NHƯ CŨ ======================
+    private void loadRecipeData() {
         try {
             String jsonStr = getIntent().getStringExtra("recipeData");
             if (jsonStr != null) {
                 JSONObject recipe = new JSONObject(jsonStr);
+                recipeId = recipe.optString("id");   // 🔥 lấy ID món ăn
 
-                tvTitle.setText(recipe.optString("title", "No Title"));
-                Glide.with(this).load(recipe.optString("image", "")).into(ivFood);
+                tvTitle.setText(recipe.optString("title"));
+                Glide.with(this).load(recipe.optString("image")).into(ivFood);
 
                 // Ingredients
                 StringBuilder ingredients = new StringBuilder();
@@ -188,5 +143,51 @@ public class MealDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // ====================== GET /favorites ======================
+    private void checkFavoriteStatus() {
+
+        favoriteService.getFavorites(token, new FavoriteApiService.FavoriteCallback() {
+            @Override
+            public void onSuccess(JSONArray favorites) {
+                if (favorites != null) {
+                    for (int i = 0; i < favorites.length(); i++) {
+                        JSONObject item = favorites.optJSONObject(i);
+                        if (item != null && recipeId.equals(item.optString("id"))) {
+
+                            isFavorite = true;
+                            ivFavorite.setImageResource(R.drawable.ic_heart_filled);  // 🔥 đổi icon
+                            return;
+                        }
+                    }
+                }
+                isFavorite = false;
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(MealDetailActivity.this, "Favorite load error: " + message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // ====================== POST /favorites ======================
+    private void addFavorite() {
+
+        favoriteService.addFavorite(token, recipeId, new FavoriteApiService.FavoriteAddCallback() {
+
+            @Override
+            public void onSuccess(String message) {
+                isFavorite = true;
+                ivFavorite.setImageResource(R.drawable.ic_heart_filled);
+                Toast.makeText(MealDetailActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MealDetailActivity.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

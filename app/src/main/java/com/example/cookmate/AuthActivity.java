@@ -56,10 +56,10 @@ public class AuthActivity extends AppCompatActivity {
         });
 //        btnGoogleLogin.setOnClickListener(v -> {
 //            // Mock dữ liệu Google trả về
-//            String googleUserId = "123456789";
-//            String email = "user@example.com";
-//            String name = "John Doe";
-//            String avatar = "https://example.com/avatar.jpg";
+//            String googleUserId = "106109954645497115642";
+//            String email = "phamngocthuan2005@gmail.com";
+//            String name = "Thuận Phạm";
+//            String avatar = "https://lh3.googleusercontent.com/a/ACg8ocIcBilTBhB8Ony-dCX4cS-XzwoJ44jY999pdhXQYL_BXPqzUg=s96-c";
 //
 //            // 🔹 Gọi API Auth để test
 //            AuthApiService authApi = new AuthApiService(AuthActivity.this);

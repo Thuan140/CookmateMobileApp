@@ -58,6 +58,12 @@ public class ShoppingAdapter extends RecyclerView.Adapter<ShoppingAdapter.VH> {
         }
     }
 
+    public int getIndexById(String id) {
+        for (int i = 0; i < items.size(); i++)
+            if (items.get(i).getId().equals(id)) return i;
+        return -1;
+    }
+
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

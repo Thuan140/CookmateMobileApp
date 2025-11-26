@@ -182,4 +182,7 @@ public class MealPlanAdapter extends RecyclerView.Adapter<MealPlanAdapter.VH> {
             mealImage = itemView.findViewById(R.id.mealImage);
         }
     }
+    public List<MealPlanItem> getItems() {
+        return items;
+    }
 }

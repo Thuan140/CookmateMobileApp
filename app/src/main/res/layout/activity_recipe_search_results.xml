@@ -172,69 +172,69 @@
         android:paddingTop="8dp"
 
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/paginationLayout"
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterSortLayout"
-
-        app:layout_constraintVertical_bias="0.0"
-        app:spanCount="2"
-        tools:listitem="@layout/item_recipe_list" />
-
-    <LinearLayout
-        android:id="@+id/paginationLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="72dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_view_border"
-            android:padding="4dp"
-            android:src="@drawable/outline_arrow_back_ios_24"
-            app:tint="@android:color/darker_gray" />
+        app:layout_constraintTop_toBottomOf="@id/filterSortLayout"
+        app:layout_constraintVertical_bias="1.0"
+        app:spanCount="2"
+        tools:listitem="@layout/item_recipe_list" />
 
-        <TextView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_view_border"
-            android:gravity="center_horizontal"
-            android:text="1"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="16sp" />
+<!--    <LinearLayout-->
+<!--        android:id="@+id/paginationLayout"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="72dp"-->
+<!--        android:gravity="center"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:padding="16dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.0"-->
+<!--        app:layout_constraintStart_toStartOf="parent">-->
 
-        <TextView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_view_border"
-            android:gravity="center_horizontal"
-            android:text="2"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="16sp" />
+<!--        <ImageView-->
+<!--            android:layout_width="32dp"-->
+<!--            android:layout_height="32dp"-->
+<!--            android:background="@drawable/bg_view_border"-->
+<!--            android:padding="4dp"-->
+<!--            android:src="@drawable/outline_arrow_back_ios_24"-->
+<!--            app:tint="@android:color/darker_gray" />-->
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_view_border"
-            android:padding="4dp"
-            android:src="@drawable/outline_arrow_forward_ios_24"
-            app:tint="@android:color/darker_gray" />
+<!--        <TextView-->
+<!--            android:layout_width="32dp"-->
+<!--            android:layout_height="32dp"-->
+<!--            android:layout_marginStart="8dp"-->
+<!--            android:layout_marginEnd="8dp"-->
+<!--            android:background="@drawable/bg_view_border"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="1"-->
+<!--            android:textColor="@android:color/darker_gray"-->
+<!--            android:textSize="16sp" />-->
 
-    </LinearLayout>
+<!--        <TextView-->
+<!--            android:layout_width="32dp"-->
+<!--            android:layout_height="32dp"-->
+<!--            android:layout_marginStart="8dp"-->
+<!--            android:layout_marginEnd="8dp"-->
+<!--            android:background="@drawable/bg_view_border"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="2"-->
+<!--            android:textColor="@android:color/darker_gray"-->
+<!--            android:textSize="16sp" />-->
+
+<!--        <ImageView-->
+<!--            android:layout_width="32dp"-->
+<!--            android:layout_height="32dp"-->
+<!--            android:background="@drawable/bg_view_border"-->
+<!--            android:padding="4dp"-->
+<!--            android:src="@drawable/outline_arrow_forward_ios_24"-->
+<!--            app:tint="@android:color/darker_gray" />-->
+
+<!--    </LinearLayout>-->
     <!-- Thanh điều hướng cố định ở cuối màn hình -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"

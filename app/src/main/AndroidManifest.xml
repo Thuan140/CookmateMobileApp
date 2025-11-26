@@ -12,7 +12,9 @@
     <!-- Cấp quyền bộ nhớ cho Android 13 trở lên -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cấp quyền truy cập local host -->
     <application
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -42,8 +44,13 @@
         <activity android:name=".UpdateIngredientCategoryActivity"
             android:label="Update Category" />
         <activity android:name=".ShoppingListActivity" />
-        <activity android:name=".RecipeSearchResultsActivity" />
 
+        <activity
+            android:name=".SuggestionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RecipeSearchResultsActivity"
+            android:exported="false" />
         <activity
             android:name=".LoginEmailActivity"
             android:exported="false" />

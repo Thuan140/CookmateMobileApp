@@ -44,8 +44,12 @@ public class NavHelper {
             } else if (id == R.id.navigation_mealplan) {
                 i = new Intent(activity, MealPlanActivity.class);
             } else if (id == R.id.navigation_profile) {
-                i = new Intent(activity, ProfileActivity.class); // hoặc ProfileActivity tùy bạn
+                i = new Intent(activity, ProfileActivity.class);
+            } else if (id == R.id.navigation_suggestion) {
+                i = new Intent(activity, SuggestionActivity.class);
             }
+
+
 
             if (i != null) {
                 // nếu Activity đã tồn tại, đưa lên trước thay vì tạo mới

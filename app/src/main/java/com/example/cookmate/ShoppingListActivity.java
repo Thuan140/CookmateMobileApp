@@ -121,6 +121,11 @@ public class ShoppingListActivity extends AppCompatActivity implements ShoppingA
                     Type listType = new TypeToken<List<ShoppingItem>>(){}.getType();
                     List<ShoppingItem> list = gson.fromJson(json.get("shoppingList"), listType);
                     runOnUiThread(() -> adapter.setItems(list));
+                    String targetId = getIntent().getStringExtra("scrollToId");
+                    if (targetId != null) {
+                        int index = adapter.getIndexById(targetId);
+                        if (index >= 0) recyclerView.scrollToPosition(index);
+                    }
                 } else {
                     runOnUiThread(() -> Toast.makeText(ShoppingListActivity.this,
                             "Phản hồi không hợp lệ từ server", Toast.LENGTH_SHORT).show());
